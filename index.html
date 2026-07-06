@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<title>哈密瓜植栽專家系統 · AI Smart Crop Advisor</title>
+
+<!-- PWA / iOS 全螢幕設定 -->
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="theme-color" content="#0f8a5f">
+<link rel="manifest" href="manifest.json">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="哈密瓜專家">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+
+<style>
+:root{
+  --green:#0f8a5f; --green-d:#0c6b49; --green-t:#134e33; --green-mid:#22a06b;
+  --green-l:#e6f4ec; --green-l2:#f1f8f3;
+  --ink:#1c2b22; --muted:#7c8b81; --faint:#9caaa1; --line:#eaf0ea;
+  --bg:#f5f8f5; --card:#fff;
+  --warn:#e8912f; --warn-l:#fdf1e0; --danger:#d9534f; --danger-l:#fdecea;
+  --blue:#3b82c4;
+  --radius:18px;
+  --safe-t:env(safe-area-inset-top); --safe-b:env(safe-area-inset-bottom);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none}
+html,body{margin:0;height:100%;overscroll-behavior:none}
+body{
+  font-family:-apple-system,"PingFang TC","Noto Sans TC",system-ui,sans-serif;
+  background:var(--bg); color:var(--ink); user-select:none; -webkit-user-select:none;
+}
+.app{max-width:480px;margin:0 auto;min-height:100vh;background:var(--bg);position:relative}
+img{-webkit-user-drag:none}
+
+/* ---------- 全域 App Header（品牌 + 鈴鐺）---------- */
+.appbar{
+  position:sticky;top:0;z-index:30;background:rgba(255,255,255,.94);backdrop-filter:blur(12px);
+  padding:calc(var(--safe-t) + 12px) 18px 12px;display:flex;align-items:center;gap:11px;
+  border-bottom:1px solid var(--line);
+}
+.appbar .logo{width:38px;height:38px;flex:none;border-radius:11px;
+  background:linear-gradient(135deg,#eafaf0,#d4efdd);display:grid;place-items:center;font-size:23px;
+  box-shadow:inset 0 0 0 1px #cfe9d6}
+.appbar .brand b{font-size:17px;font-weight:800;color:var(--green-t);letter-spacing:.3px;display:block;line-height:1.15}
+.appbar .brand span{font-size:10.5px;color:var(--faint);font-weight:600;letter-spacing:.6px}
+.appbar .bell{margin-left:auto;position:relative;width:40px;height:40px;border-radius:50%;
+  display:grid;place-items:center;font-size:20px;background:none;border:none;cursor:pointer;color:#3a4a40}
+.appbar .bell .dot{position:absolute;top:8px;right:9px;width:8px;height:8px;border-radius:50%;
+  background:var(--danger);border:2px solid #fff}
+
+/* ---------- Views ---------- */
+main{padding:0 16px 96px}
+.view{display:none;animation:fade .25s ease}
+.view.active{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+.page-title{display:flex;align-items:center;gap:10px;padding:16px 2px 6px}
+.page-title .back{width:30px;height:30px;border-radius:50%;background:var(--card);border:1px solid var(--line);
+  display:grid;place-items:center;font-size:17px;color:var(--green-t);cursor:pointer;flex:none;box-shadow:0 1px 4px rgba(0,0,0,.04)}
+.page-title h1{font-size:22px;font-weight:800;margin:0;color:var(--green-t)}
+.page-title .emoji{font-size:18px}
+
+.card{background:var(--card);border-radius:var(--radius);padding:16px;box-shadow:0 2px 14px rgba(28,43,34,.05);margin-bottom:14px}
+.sec-title{font-size:15px;font-weight:800;color:var(--green-t);margin:18px 4px 10px;display:flex;justify-content:space-between;align-items:center}
+.sec-title .more{font-size:12.5px;color:var(--muted);font-weight:600}
+.pill{font-size:11px;font-weight:800;padding:3px 9px;border-radius:999px}
+.pill.ok{background:var(--green-l);color:var(--green-d)}
+.pill.warn{background:var(--warn-l);color:var(--warn)}
+.pill.mid{background:#fff5e6;color:#c98016}
+.pill.blue{background:#e8f1fb;color:var(--blue)}
+
+/* ---------- 首頁 ---------- */
+.loc-chip{display:inline-flex;align-items:center;gap:5px;background:var(--green);color:#fff;
+  padding:6px 13px;border-radius:999px;font-size:12.5px;font-weight:700;margin:6px 0 12px;cursor:pointer}
+.loc-chip:active{opacity:.85}
+
+/* 當地天氣卡 */
+.weather-card{background:linear-gradient(135deg,#eaf6f0,#e6f0fb);border:1px solid #dbe9e2;
+  border-radius:20px;padding:15px;margin:14px 0 4px}
+.wx-main{display:flex;align-items:center;gap:14px}
+.wx-icon{font-size:44px;line-height:1}
+.wx-temp{font-size:34px;font-weight:900;color:var(--green-t);line-height:1}
+.wx-temp small{font-size:15px;font-weight:700;color:var(--muted)}
+.wx-desc{margin-left:auto;text-align:right}
+.wx-desc b{font-size:15px;display:block;color:var(--ink)}
+.wx-desc span{font-size:12px;color:var(--muted)}
+.wx-stats{display:flex;gap:8px;margin-top:13px;padding-top:12px;border-top:1px solid rgba(20,40,30,.08)}
+.wx-s{flex:1;text-align:center}
+.wx-s span{font-size:11px;color:var(--muted);display:block}
+.wx-s b{font-size:14px;color:var(--green-t);margin-top:3px;display:block;font-weight:800}
+.wx-tip{margin-top:11px;font-size:12px;color:#3f5e39;background:rgba(255,255,255,.65);
+  border-radius:11px;padding:9px 11px;line-height:1.5;display:none;align-items:flex-start;gap:6px}
+.wx-tip.show{display:flex}
+.greeting h2{font-size:26px;font-weight:900;margin:0;color:var(--green-t)}
+.greeting p{margin:6px 0 0;color:var(--muted);font-size:13.5px}
+.stage-card{background:linear-gradient(135deg,#fff,#f2faf4);border:1px solid #dcefe0;border-radius:20px;
+  padding:16px;display:flex;gap:14px;margin:16px 0 4px;overflow:hidden;position:relative}
+.stage-card .info{display:flex;gap:18px;flex-wrap:wrap}
+.stage-card .info .it .k{font-size:11px;color:var(--muted);font-weight:600;display:flex;align-items:center;gap:4px}
+.stage-card .info .it .v{font-size:16px;font-weight:800;color:var(--green-t);margin-top:3px}
+.stage-card .thumb{width:78px;height:78px;border-radius:14px;flex:none;object-fit:cover;
+  background:linear-gradient(135deg,#bfe3c6,#8fd0a0);display:grid;place-items:center;font-size:34px;margin-left:auto}
+
+.cta{margin-top:16px;background:linear-gradient(120deg,var(--green-d),var(--green-mid));color:#fff;
+  border-radius:20px;padding:20px;display:flex;align-items:center;gap:16px;cursor:pointer;position:relative;overflow:hidden;
+  box-shadow:0 10px 24px rgba(15,138,95,.28)}
+.cta::after{content:"🍃";position:absolute;right:-6px;bottom:-14px;font-size:80px;opacity:.14;transform:rotate(-18deg)}
+.cta .cam{width:56px;height:56px;border-radius:16px;background:rgba(255,255,255,.18);display:grid;place-items:center;font-size:28px;flex:none}
+.cta b{font-size:19px;display:block;font-weight:800}
+.cta span{font-size:12.5px;opacity:.92;display:block;margin-top:3px}
+.cta .chev{margin-left:auto;font-size:22px;opacity:.9}
+
+.grid6{display:grid;grid-template-columns:repeat(2,1fr);gap:11px;margin-top:14px}
+.gitem{background:var(--card);border-radius:16px;padding:14px;box-shadow:0 2px 12px rgba(28,43,34,.05);cursor:pointer;
+  transition:transform .12s}
+.gitem:active{transform:scale(.97)}
+.gitem .ic{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;font-size:21px;margin-bottom:9px}
+.gitem b{font-size:14.5px;font-weight:800;display:block;color:var(--ink)}
+.gitem span{font-size:11.5px;color:var(--muted);display:block;margin-top:3px;line-height:1.4}
+.ic-green{background:var(--green-l)} .ic-blue{background:#e8f1fb} .ic-mint{background:#e2f5ee}
+.ic-warn{background:var(--warn-l)} .ic-purple{background:#eee9fb} .ic-amber{background:#fbf3e2}
+
+.status4{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:4px}
+.status4 .s{text-align:center;padding:6px 2px}
+.status4 .s .ic{font-size:19px}
+.status4 .s .v{font-size:19px;font-weight:900;color:var(--green-t);margin:4px 0 2px;line-height:1}
+.status4 .s .v small{font-size:11px;font-weight:700;color:var(--muted)}
+.status4 .s .n{font-size:11px;color:var(--muted);font-weight:600}
+.status4 .s .pill{margin-top:5px;display:inline-block}
+
+/* ---------- 診斷 ---------- */
+.viewfinder{border-radius:20px;overflow:hidden;position:relative;background:#111;margin-top:4px;box-shadow:0 6px 18px rgba(0,0,0,.18)}
+.viewfinder .photo{width:100%;height:260px;object-fit:cover;display:block;opacity:.96}
+.viewfinder .vf-top{position:absolute;top:12px;left:12px;right:12px;display:flex;justify-content:space-between}
+.viewfinder .vf-btn{background:rgba(0,0,0,.4);color:#fff;border-radius:11px;padding:7px 11px;font-size:11.5px;
+  display:flex;flex-direction:column;align-items:center;gap:3px;font-weight:600}
+.viewfinder .vf-btn .i{font-size:16px}
+.brackets{position:absolute;inset:44px 40px 84px}
+.brackets i{position:absolute;width:26px;height:26px;border:2.5px solid rgba(255,255,255,.85);border-radius:3px}
+.brackets i.tl{top:0;left:0;border-right:none;border-bottom:none}
+.brackets i.tr{top:0;right:0;border-left:none;border-bottom:none}
+.brackets i.bl{bottom:0;left:0;border-right:none;border-top:none}
+.brackets i.br{bottom:0;right:0;border-left:none;border-top:none}
+.brackets .cross{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:22px;color:rgba(255,255,255,.9)}
+.vf-modes{position:absolute;left:0;right:0;bottom:64px;display:flex;justify-content:center;gap:6px}
+.vf-modes .m{background:rgba(0,0,0,.35);color:#fff;padding:7px 14px;border-radius:999px;font-size:12px;font-weight:600;display:flex;align-items:center;gap:5px}
+.vf-modes .m.on{background:rgba(15,138,95,.92)}
+.shutter{position:absolute;left:50%;bottom:12px;transform:translateX(-50%);width:56px;height:56px;border-radius:50%;
+  background:#fff;border:4px solid rgba(255,255,255,.5);cursor:pointer;box-shadow:0 3px 10px rgba(0,0,0,.3)}
+.shutter:active{transform:translateX(-50%) scale(.92)}
+
+/* AI 初步判斷 */
+.diag-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.diag-head b{font-size:14px;color:var(--green-t)}
+.diag-head time{font-size:11px;color:var(--faint)}
+.diag-main{display:flex;align-items:center;gap:14px}
+.diag-main .txt{flex:1}
+.diag-main .cond{font-size:22px;font-weight:900;color:var(--ink);display:flex;align-items:center;gap:7px}
+.diag-main .cond .dotr{color:var(--danger)}
+.diag-main .prob{font-size:13px;color:var(--muted);margin-top:4px}
+.diag-main .prob b{color:var(--green-t)}
+.gauge{width:96px;height:60px;flex:none}
+.advice-box{margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}
+.advice-box .h{font-size:13.5px;font-weight:800;color:var(--green-t);display:flex;align-items:center;gap:6px}
+.advice-box p{font-size:13px;color:#405146;margin:6px 0 0;line-height:1.55}
+.tags{display:flex;gap:7px;margin-top:12px;flex-wrap:wrap}
+.tags .t{font-size:11.5px;font-weight:700;padding:4px 11px;border-radius:999px;background:var(--green-l2);color:var(--green-d)}
+.tags .t.warn{background:var(--warn-l);color:var(--warn)}
+.spinner{width:40px;height:40px;border:4px solid var(--green-l);border-top-color:var(--green);border-radius:50%;animation:spin 1s linear infinite;margin:26px auto}
+@keyframes spin{to{transform:rotate(360deg)}}
+.result-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)}
+.result-row:last-child{border-bottom:none}
+.result-row .name{font-weight:700;font-size:14px}
+.result-row .name small{display:block;color:var(--muted);font-weight:500;font-size:11.5px;margin-top:2px}
+.badge{font-size:12px;font-weight:800;padding:4px 10px;border-radius:999px}
+.badge.hi{background:var(--danger-l);color:var(--danger)}
+.badge.mid{background:var(--warn-l);color:var(--warn)}
+.badge.lo{background:var(--green-l);color:var(--green-d)}
+
+/* ---------- 紀錄 / 環境 ---------- */
+.chip-row{display:inline-flex;align-items:center;gap:5px;background:var(--green-l);color:var(--green-d);
+  padding:6px 12px;border-radius:999px;font-size:12px;font-weight:700}
+.upd{font-size:11.5px;color:var(--faint);display:flex;align-items:center;gap:5px}
+.segment{display:flex;background:#eef3ee;border-radius:13px;padding:4px;margin:12px 0 14px;gap:4px}
+.segment button{flex:1;border:none;background:none;font-family:inherit;font-size:13px;font-weight:700;color:var(--muted);
+  padding:9px 0;border-radius:10px;cursor:pointer}
+.segment button.on{background:var(--green);color:#fff;box-shadow:0 2px 8px rgba(15,138,95,.3)}
+.sensors3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:6px}
+.sensor{background:var(--card);border-radius:16px;padding:13px 11px;box-shadow:0 2px 12px rgba(28,43,34,.05);text-align:left}
+.sensor .ic{font-size:19px}
+.sensor .name{font-size:11.5px;color:var(--muted);font-weight:600;margin-top:2px}
+.sensor .val{font-size:21px;font-weight:900;color:var(--ink);margin-top:5px;line-height:1}
+.sensor .val small{font-size:10.5px;font-weight:700;color:var(--muted)}
+.sensor .pill{margin-top:7px;display:inline-block}
+.chart-card{padding:15px}
+.chart-card .ch-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
+.chart-card .ch-head b{font-size:14px;color:var(--green-t)}
+.legend{display:flex;gap:14px;margin:6px 0 2px;font-size:11.5px;color:var(--muted);font-weight:600}
+.legend i{display:inline-block;width:11px;height:3px;border-radius:2px;margin-right:5px;vertical-align:middle}
+.mini-sel{font-size:11.5px;color:var(--muted);border:1px solid var(--line);border-radius:9px;padding:4px 9px;font-weight:600}
+.chart-card svg{width:100%;display:block;overflow:visible}
+.timeline .ev{display:flex;align-items:flex-start;gap:10px;padding:11px 0;border-bottom:1px solid var(--line)}
+.timeline .ev:last-child{border-bottom:none}
+.timeline .ev time{font-size:12px;color:var(--muted);font-weight:700;flex:none;width:44px}
+.timeline .ev .d{width:9px;height:9px;border-radius:50%;margin-top:4px;flex:none;background:var(--green-mid)}
+.timeline .ev .d.warn{background:var(--warn)} .timeline .ev .d.blue{background:var(--blue)}
+.timeline .ev .body{flex:1}
+.timeline .ev .body b{font-size:13.5px;font-weight:700}
+.timeline .ev .body span{font-size:12px;color:var(--muted);display:block;margin-top:1px}
+
+/* ---------- 建議 ---------- */
+.stage-hero{border-radius:20px;overflow:hidden;background:linear-gradient(135deg,#fff,#f2faf4);border:1px solid #dcefe0;padding:16px;position:relative}
+.stage-hero .st-top{font-size:15px;font-weight:800;color:var(--ink)}
+.stage-hero .st-top em{color:var(--green);font-style:normal}
+.stage-hero .st-h{font-size:13px;font-weight:800;color:var(--green-t);margin:12px 0 6px}
+.stage-hero .chk{font-size:12.5px;color:#405146;display:flex;gap:7px;align-items:flex-start;margin-bottom:6px;line-height:1.5;max-width:66%}
+.stage-hero .chk .c{color:var(--green);font-weight:900;flex:none}
+.stage-hero .art{position:absolute;right:14px;top:14px;width:120px;height:110px;border-radius:14px;object-fit:cover;
+  background:linear-gradient(135deg,#bfe3c6,#7cc492);display:grid;place-items:center;font-size:46px}
+.adv-item{background:var(--card);border-radius:16px;padding:14px;display:flex;align-items:center;gap:12px;
+  box-shadow:0 2px 12px rgba(28,43,34,.05);margin-bottom:11px}
+.adv-item .ic{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;font-size:20px;flex:none}
+.adv-item .txt{flex:1}
+.adv-item .txt b{font-size:14px;display:block}
+.adv-item .txt span{font-size:11.5px;color:var(--muted);display:block;margin-top:3px}
+.adv-item .go{font-size:12px;font-weight:700;color:var(--green-d);border:1px solid #cfe6d6;background:#fff;
+  padding:8px 11px;border-radius:11px;white-space:nowrap;cursor:pointer;font-family:inherit;flex:none}
+.warn-item{background:var(--card);border-radius:16px;padding:14px;display:flex;gap:12px;box-shadow:0 2px 12px rgba(28,43,34,.05);margin-bottom:11px}
+.warn-item .ic{font-size:24px;flex:none}
+.warn-item .txt{flex:1}
+.warn-item .txt b{font-size:14px;display:block}
+.warn-item .txt span{font-size:11.5px;color:var(--muted);display:block;margin-top:3px}
+.warn-item .acts{display:flex;flex-direction:column;gap:6px;flex:none}
+.warn-item .acts button{font-family:inherit;font-size:11.5px;font-weight:700;border-radius:10px;padding:7px 10px;cursor:pointer;white-space:nowrap;border:1px solid transparent}
+.warn-item .acts .fill{background:var(--warn);color:#fff}
+.warn-item .acts .out{background:#fff;color:var(--green-d);border-color:#cfe6d6}
+
+/* ---------- 問題查詢 ---------- */
+.search-box{display:flex;align-items:center;gap:10px;background:var(--card);border-radius:15px;padding:13px 15px;
+  box-shadow:0 2px 12px rgba(28,43,34,.05);margin-bottom:6px}
+.search-box input{border:none;outline:none;flex:1;font-size:14px;font-family:inherit;background:none;color:var(--ink)}
+.search-box .mi{font-size:18px;color:var(--muted)}
+.hot-chips{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0 4px}
+.hot-chips .hc{background:var(--card);border:1px solid var(--line);border-radius:999px;padding:8px 13px;font-size:12.5px;
+  font-weight:600;display:flex;align-items:center;gap:5px;cursor:pointer;box-shadow:0 1px 5px rgba(28,43,34,.04)}
+.filter-row{display:flex;gap:6px;overflow-x:auto;margin:14px 0 12px;padding-bottom:2px;scrollbar-width:none}
+.filter-row::-webkit-scrollbar{display:none}
+.filter-row .f{border:none;background:#eef3ee;color:var(--muted);font-family:inherit;font-size:13px;font-weight:700;
+  padding:8px 16px;border-radius:999px;white-space:nowrap;cursor:pointer}
+.filter-row .f.on{background:var(--green);color:#fff}
+.qa{background:var(--card);border-radius:16px;padding:14px;display:flex;align-items:center;gap:12px;
+  box-shadow:0 2px 12px rgba(28,43,34,.05);margin-bottom:11px;cursor:pointer}
+.qa .ic{width:44px;height:44px;border-radius:50%;background:var(--green-l);display:grid;place-items:center;font-size:22px;flex:none}
+.qa .txt{flex:1}
+.qa .txt b{font-size:14.5px;display:block}
+.qa .txt span{font-size:12px;color:var(--muted);display:block;margin:3px 0 6px;line-height:1.4}
+.qa .chev{color:#c7d6c9;font-size:20px}
+.ask-card{background:linear-gradient(135deg,#eef8f1,#e2f2e8);border-radius:18px;padding:16px;display:flex;align-items:center;gap:13px;margin-top:4px}
+.ask-card .av{font-size:38px;flex:none}
+.ask-card .txt{flex:1}
+.ask-card .txt b{font-size:15px;display:block;color:var(--green-t)}
+.ask-card .txt span{font-size:12px;color:var(--muted);display:block;margin-top:3px}
+.ask-card .btn{background:var(--green);color:#fff;border:none;font-family:inherit;font-size:12px;font-weight:700;
+  padding:9px 12px;border-radius:11px;cursor:pointer;white-space:nowrap}
+
+/* ---------- 我的 ---------- */
+.profile-head{display:flex;align-items:center;gap:14px;padding:6px 2px 4px}
+.profile-head .av{width:60px;height:60px;border-radius:50%;background:linear-gradient(135deg,var(--green),var(--green-mid));
+  display:grid;place-items:center;font-size:30px;color:#fff;flex:none}
+.profile-head b{font-size:19px;color:var(--green-t)}
+.profile-head span{font-size:12.5px;color:var(--muted);display:block;margin-top:3px}
+.list-card{padding:4px 16px}
+.list-item{display:flex;align-items:center;gap:12px;padding:14px 0;border-bottom:1px solid var(--line);cursor:pointer}
+.list-item:last-child{border-bottom:none}
+.list-item .ic{font-size:19px;width:26px;text-align:center}
+.list-item b{font-size:14px;flex:1;font-weight:600}
+.list-item .chev{color:#c7d6c9;font-size:19px}
+.list-item small{font-size:12px;color:var(--muted)}
+
+/* ---------- Bottom nav ---------- */
+nav{
+  position:fixed;left:50%;transform:translateX(-50%);bottom:0;width:100%;max-width:480px;
+  background:rgba(255,255,255,.94);backdrop-filter:blur(14px);border-top:1px solid var(--line);
+  display:flex;justify-content:space-around;padding:8px 4px calc(var(--safe-b) + 8px);z-index:20
+}
+nav .tab{background:none;border:none;flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;
+  color:var(--faint);font-size:10.5px;font-weight:700;font-family:inherit;cursor:pointer;padding:2px 0}
+nav .tab .ic{font-size:21px;filter:grayscale(1) opacity(.55);transition:filter .15s}
+nav .tab.active{color:var(--green)}
+nav .tab.active .ic{filter:none}
+
+.hidden-input{display:none}
+.toast{position:fixed;bottom:calc(var(--safe-b) + 84px);left:50%;transform:translateX(-50%);
+  background:#1c2b22;color:#fff;padding:11px 20px;border-radius:999px;font-size:13px;z-index:50;opacity:0;
+  transition:opacity .3s;pointer-events:none;max-width:82%;text-align:center}
+.toast.show{opacity:.96}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="appbar">
+    <div class="logo">🍈</div>
+    <div class="brand"><b>哈密瓜植栽專家系統</b><span>AI Smart Crop Advisor</span></div>
+    <button class="bell" onclick="go('advice')" aria-label="通知">🔔<span class="dot"></span></button>
+  </div>
+
+  <main>
+
+    <!-- ============ 首頁 ============ -->
+    <section id="home" class="view active">
+      <div style="padding-top:14px">
+        <div class="loc-chip" id="locChip" onclick="initLocationWeather()">📍 雲林縣 · 斗六市</div>
+        <div class="greeting">
+          <h2>您好，農友！🌱</h2>
+          <p>今日哈密瓜生長狀況良好</p>
+        </div>
+      </div>
+
+      <div class="weather-card" id="weatherCard">
+        <div class="wx-main">
+          <span class="wx-icon" id="wxIcon">🌤️</span>
+          <div class="wx-temp" id="wxTemp">--<small>°C</small></div>
+          <div class="wx-desc">
+            <b id="wxText">點膠囊定位，顯示當地天氣</b>
+            <span id="wxSub">體感 -- · 濕度 --</span>
+          </div>
+        </div>
+        <div class="wx-stats">
+          <div class="wx-s"><span>降雨機率</span><b id="wxRain">--</b></div>
+          <div class="wx-s"><span>風速</span><b id="wxWind">--</b></div>
+          <div class="wx-s"><span>今日高/低</span><b id="wxRange">--</b></div>
+        </div>
+        <div class="wx-tip" id="wxTip"><span>🌱</span><span id="wxTipText"></span></div>
+      </div>
+
+      <div class="stage-card">
+        <div class="info">
+          <div class="it"><div class="k">🌿 生育階段</div><div class="v">結果期</div></div>
+          <div class="it"><div class="k">📅 定植天數</div><div class="v">62 天</div></div>
+          <div class="it"><div class="k">🍈 預估採收</div><div class="v">18 天後</div></div>
+        </div>
+        <div class="thumb">🍈</div>
+      </div>
+
+      <div class="cta" onclick="openCamera()">
+        <div class="cam">📷</div>
+        <div><b>拍照診斷</b><span>拍照上傳，AI 即時診斷作物狀況</span></div>
+        <div class="chev">›</div>
+      </div>
+
+      <div class="grid6">
+        <div class="gitem" onclick="go('search')"><div class="ic ic-green">🌿</div><b>症狀查詢</b><span>搜尋病蟲害與缺素症狀</span></div>
+        <div class="gitem" onclick="go('records')"><div class="ic ic-blue">💻</div><b>環境紀錄</b><span>查看環境數據與歷史紀錄</span></div>
+        <div class="gitem" onclick="go('advice')"><div class="ic ic-mint">🌱</div><b>栽培建議</b><span>依生育階段提供專業建議</span></div>
+        <div class="gitem" onclick="go('advice')"><div class="ic ic-warn">⚠️</div><b>異常預警</b><span>即時監測異常提醒與通知</span></div>
+        <div class="gitem" onclick="go('search')"><div class="ic ic-purple">❓</div><b>常見問題</b><span>常見栽培問題與解答</span></div>
+        <div class="gitem" onclick="go('search')"><div class="ic ic-amber">📙</div><b>知識庫</b><span>栽培技術與資料庫</span></div>
+      </div>
+
+      <div class="sec-title">環境與作物狀態 <span class="more" id="homeUpd">更新時間 05/20 08:30</span></div>
+      <div class="card">
+        <div class="status4">
+          <div class="s"><div class="ic">🌡️</div><div class="v">28.6<small>°C</small></div><div class="n">溫度</div><span class="pill ok">適宜</span></div>
+          <div class="s"><div class="ic">💧</div><div class="v">68<small>%</small></div><div class="n">濕度</div><span class="pill ok">適宜</span></div>
+          <div class="s"><div class="ic">🌱</div><div class="v">32<small>%</small></div><div class="n">土壤水分</div><span class="pill mid">適中</span></div>
+          <div class="s"><div class="ic">💚</div><div class="v">86<small>分</small></div><div class="n">作物健康度</div><span class="pill ok">良好</span></div>
+        </div>
+      </div>
+      <p style="text-align:center;font-size:12px;color:var(--faint);margin:0 0 8px">📍 溫室編號：A 區 - 03 號棚</p>
+    </section>
+
+    <!-- ============ 診斷 ============ -->
+    <section id="diag" class="view">
+      <div class="page-title"><h1>拍照診斷</h1></div>
+
+      <div class="viewfinder" id="viewfinder">
+        <img class="photo" id="vfPhoto" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='260'%3E%3Crect width='400' height='260' fill='%232e5b3a'/%3E%3C/svg%3E" alt="取景">
+        <div class="vf-top">
+          <div class="vf-btn"><span class="i">⚡</span>閃光</div>
+          <div class="vf-btn"><span class="i">🔄</span>切換鏡頭</div>
+        </div>
+        <div class="brackets"><i class="tl"></i><i class="tr"></i><i class="bl"></i><i class="br"></i><span class="cross">＋</span></div>
+        <div class="vf-modes">
+          <span class="m on">📷 拍照</span><span class="m" onclick="openCamera()">🖼️ 相簿上傳</span><span class="m">🕘 歷史紀錄</span>
+        </div>
+        <button class="shutter" onclick="openCamera()" aria-label="快門"></button>
+      </div>
+
+      <div class="sec-title" style="margin-bottom:8px">AI 初步判斷</div>
+      <div class="card" id="diagCard">
+        <div class="diag-head"><b>🌿 尚未診斷</b></div>
+        <p style="font-size:13px;color:var(--muted);margin:6px 0 0;line-height:1.6">
+          點擊上方 <b style="color:var(--green-t)">快門</b> 或首頁的「拍照診斷」，拍攝葉片 / 果實照片，AI 會辨識可能的病蟲害並給出管理建議。
+        </p>
+      </div>
+    </section>
+
+    <!-- ============ 紀錄 / 環境 ============ -->
+    <section id="records" class="view">
+      <div class="page-title"><h1>環境紀錄</h1></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+        <span class="chip-row">📍 A 區 · 03 號棚</span>
+        <span class="upd">更新時間 05/20 08:30 ↻</span>
+      </div>
+      <div class="segment">
+        <button class="on">今日</button><button>近 7 日</button><button>近 30 日</button>
+      </div>
+
+      <div class="sensors3">
+        <div class="sensor"><div class="ic">🌡️</div><div class="name">溫度</div><div class="val">28.4<small> °C</small></div><span class="pill ok">正常</span></div>
+        <div class="sensor"><div class="ic">💧</div><div class="name">濕度</div><div class="val">67<small> %</small></div><span class="pill ok">正常</span></div>
+        <div class="sensor"><div class="ic">🌱</div><div class="name">土壤水分</div><div class="val">35<small> %</small></div><span class="pill warn">偏低</span></div>
+        <div class="sensor"><div class="ic">☀️</div><div class="name">光照</div><div class="val">620<small> µmol</small></div><span class="pill ok">正常</span></div>
+        <div class="sensor"><div class="ic">⚡</div><div class="name">EC 值</div><div class="val">1.52<small> mS/cm</small></div><span class="pill ok">正常</span></div>
+        <div class="sensor"><div class="ic">🧪</div><div class="name">pH 值</div><div class="val">6.2</div><span class="pill ok">正常</span></div>
+      </div>
+
+      <div class="card chart-card">
+        <div class="ch-head"><b>溫度 / 濕度趨勢</b><span class="mini-sel">今日 ▾</span></div>
+        <div class="legend"><span><i style="background:#2f9e5a"></i>溫度 (°C)</span><span><i style="background:#3b82c4"></i>濕度 (%)</span></div>
+        <div id="chartTH"></div>
+      </div>
+
+      <div class="card chart-card">
+        <div class="ch-head"><b>土壤水分趨勢</b><span class="mini-sel">今日 ▾</span></div>
+        <div class="legend"><span><i style="background:#4a9d55"></i>土壤水分 (%)</span><span><i style="background:#3b82c4;height:0;border-top:2px dashed #3b82c4"></i>灌溉時間</span></div>
+        <div id="chartSoil"></div>
+      </div>
+
+      <div class="card">
+        <div class="ch-head" style="margin-bottom:6px"><b>環境事件紀錄</b><span class="mini-sel" style="border:none">查看全部 ›</span></div>
+        <div class="timeline">
+          <div class="ev"><time>08:30</time><span class="d"></span><div class="body"><b>感測正常</b><span>所有感測數值皆在正常範圍內。</span></div><span class="pill ok">正常</span></div>
+          <div class="ev"><time>11:00</time><span class="d warn"></span><div class="body"><b>濕度偏高</b><span>濕度 78%，較建議範圍偏高。</span></div><span class="pill warn">需注意</span></div>
+          <div class="ev"><time>15:20</time><span class="d blue"></span><div class="body"><b>已完成灌溉</b><span>自動灌溉執行完成，土壤水分回升。</span></div><span class="pill blue">已完成</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ 建議 / 栽培建議 ============ -->
+    <section id="advice" class="view">
+      <div class="page-title"><h1>栽培建議</h1></div>
+
+      <div class="stage-hero">
+        <div class="st-top">目前生育階段：<em>結果期</em></div>
+        <div class="st-h">建議重點</div>
+        <div class="chk"><span class="c">✓</span>果實發育關鍵期，穩定水肥管理</div>
+        <div class="chk"><span class="c">✓</span>注意通風與病害防治，確保品質</div>
+        <div class="art">🍈</div>
+      </div>
+
+      <div class="sec-title">栽培建議事項</div>
+      <div class="adv-item"><div class="ic ic-blue">💧</div><div class="txt"><b>灌溉建議：維持土壤水分穩定</b><span>保持土壤濕度於 60–70% 之間</span></div><button class="go" onclick="toast('灌溉處理步驟：早晚各檢查一次滴灌…')">查看處理步驟</button></div>
+      <div class="adv-item"><div class="ic ic-green">🌿</div><div class="txt"><b>施肥提醒：依生育階段補充養分</b><span>建議補充鉀肥，促進果實糖度提升</span></div><button class="go" onclick="toast('施肥處理步驟：追施高鉀水溶肥…')">查看處理步驟</button></div>
+      <div class="adv-item"><div class="ic ic-mint">🛡️</div><div class="txt"><b>病害預防：加強通風與巡檢</b><span>注意白粉病、露菌病等病害</span></div><button class="go" onclick="toast('病害預防步驟：每日巡檢葉背、維持通風…')">查看處理步驟</button></div>
+      <div class="adv-item"><div class="ic ic-amber">🍈</div><div class="txt"><b>採收預估：18 天後</b><span>預估採收期 05/20（依氣候調整）</span></div><button class="go" onclick="toast('採收前準備：停水控制、監測糖度…')">查看處理步驟</button></div>
+
+      <div class="sec-title">異常預警 <span class="more">查看全部 ›</span></div>
+      <div class="warn-item">
+        <span class="ic">⚠️</span>
+        <div class="txt"><b>濕度偏高，白粉病風險上升</b><span>目前濕度 82%，建議加強通風與巡檢</span></div>
+        <div class="acts"><button class="fill" onclick="toast('已開啟白粉病防治步驟')">查看處理步驟</button><button class="out" onclick="toast('已加入待辦清單 ✓')">加入待辦</button></div>
+      </div>
+      <div class="warn-item">
+        <span class="ic">🟠</span>
+        <div class="txt"><b>土壤水分偏低，建議檢查灌溉</b><span>目前土壤水分 28%，低於建議值</span></div>
+        <div class="acts"><button class="fill" onclick="toast('已開啟灌溉檢查步驟')">查看處理步驟</button><button class="out" onclick="toast('已加入待辦清單 ✓')">加入待辦</button></div>
+      </div>
+    </section>
+
+    <!-- ============ 問題查詢（子頁）============ -->
+    <section id="search" class="view">
+      <div class="page-title"><button class="back" onclick="go('home')">‹</button><h1>問題查詢</h1><span class="emoji">🌱</span></div>
+
+      <div class="search-box">
+        <span class="mi">🔍</span>
+        <input id="searchInput" placeholder="輸入症狀、病蟲害或栽培問題" oninput="filterQA()">
+        <span class="mi">⛶</span>
+      </div>
+
+      <div class="sec-title" style="margin:16px 4px 8px">熱門搜尋</div>
+      <div class="hot-chips" id="hotChips"></div>
+
+      <div class="filter-row" id="filterRow"></div>
+      <div id="qaList"></div>
+
+      <div class="ask-card">
+        <span class="av">🧑‍🌾</span>
+        <div class="txt"><b>農友常問</b><span>彙整最多農友關心的問題與專家解答，幫助您快速找到解決方案。</span></div>
+        <button class="btn" onclick="toast('前往熱門問答…')">查看熱門問答 ›</button>
+      </div>
+    </section>
+
+    <!-- ============ 我的 ============ -->
+    <section id="profile" class="view">
+      <div class="page-title"><h1>我的</h1></div>
+      <div class="card">
+        <div class="profile-head">
+          <div class="av">🧑‍🌾</div>
+          <div><b>麥寮農友</b><span>雲林縣 · 斗六市 ｜ A 區 03 號棚</span></div>
+        </div>
+      </div>
+
+      <div class="card list-card">
+        <div class="list-item"><span class="ic">🍈</span><b>我的作物</b><small>哈密瓜 · 結果期</small><span class="chev">›</span></div>
+        <div class="list-item"><span class="ic">📡</span><b>感測裝置</b><small>ESP32-Cam × 2</small><span class="chev">›</span></div>
+        <div class="list-item"><span class="ic">🗂️</span><b>診斷紀錄</b><small>共 12 筆</small><span class="chev">›</span></div>
+        <div class="list-item"><span class="ic">✅</span><b>待辦清單</b><small>2 項</small><span class="chev">›</span></div>
+      </div>
+
+      <div class="card list-card">
+        <div class="list-item"><span class="ic">🔔</span><b>通知設定</b><span class="chev">›</span></div>
+        <div class="list-item"><span class="ic">🌐</span><b>語言</b><small>繁體中文</small><span class="chev">›</span></div>
+        <div class="list-item"><span class="ic">ℹ️</span><b>關於本系統</b><span class="chev">›</span></div>
+      </div>
+      <p style="text-align:center;font-size:11.5px;color:var(--faint);margin:2px 0 4px">
+        雲林縣 AI 創意實作計畫 · 麥寮高中<br>導入 GenAI 的植栽專家系統 v0.2
+      </p>
+    </section>
+
+  </main>
+
+  <nav>
+    <button class="tab active" data-view="home" onclick="go('home')"><span class="ic">🏠</span>首頁</button>
+    <button class="tab" data-view="diag" onclick="go('diag')"><span class="ic">📷</span>診斷</button>
+    <button class="tab" data-view="records" onclick="go('records')"><span class="ic">📋</span>紀錄</button>
+    <button class="tab" data-view="advice" onclick="go('advice')"><span class="ic">🌿</span>建議</button>
+    <button class="tab" data-view="profile" onclick="go('profile')"><span class="ic">👤</span>我的</button>
+  </nav>
+
+  <!-- 不加 capture：讓 iOS 跳「拍照 / 相簿 / 檔案」選單，鏡像測試時可從相簿選 -->
+  <input type="file" accept="image/*" class="hidden-input" id="camInput" onchange="onPhoto(event)">
+  <div class="toast" id="toast"></div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,17 @@
+{
+  "name": "哈密瓜植栽專家系統 · AI Smart Crop Advisor",
+  "short_name": "哈密瓜專家",
+  "description": "拍照即查,快速掌握溫室哈密瓜生長狀況、環境數據與栽培建議",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f5f8f5",
+  "theme_color": "#0f8a5f",
+  "lang": "zh-Hant",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

@@ -1,0 +1,14 @@
+# macOS
+.DS_Store
+
+# 相依套件 / 建置產物
+node_modules/
+.vercel/
+
+# 環境變數（含 API 金鑰，絕對不要進版控）
+.env
+.env.*
+!.env.example
+
+# 記錄檔
+*.log
