@@ -1,5 +1,5 @@
 /* Service Worker — 讓 PWA 可被「安裝」並支援基本離線快取 */
-const CACHE = 'planting-diagnosis-v4';
+const CACHE = 'planting-diagnosis-v5';
 const ASSETS = ['./', 'index.html', 'app.js', 'manifest.json',
   'icons/icon-192.png', 'icons/icon-512.png'];
 

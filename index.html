@@ -296,6 +296,25 @@ nav .tab.active .ic{filter:none}
   background:#1c2b22;color:#fff;padding:11px 20px;border-radius:999px;font-size:13px;z-index:50;opacity:0;
   transition:opacity .3s;pointer-events:none;max-width:82%;text-align:center}
 .toast.show{opacity:.96}
+
+/* ============ 平板 / iPad 版型（手機維持原樣，平板自動加寬）============ */
+@media (min-width:700px){
+  .app{max-width:720px}
+  main{padding:0 22px 108px}
+  nav{max-width:720px}
+  .grid6{grid-template-columns:repeat(3,1fr)}   /* 功能宮格 2→3 欄 */
+  .greeting h2{font-size:30px}
+  .page-title h1{font-size:24px}
+  .viewfinder .photo{height:300px}
+  .toast{bottom:calc(var(--safe-b) + 96px)}
+}
+@media (min-width:1024px){
+  .app{max-width:920px}                          /* iPad 橫向再加寬、置中 */
+  main{padding:0 28px 112px}
+  nav{max-width:920px}
+  .greeting h2{font-size:34px}
+  .stage-card .thumb{width:92px;height:92px;font-size:40px}
+}
 </style>
 </head>
 <body>
