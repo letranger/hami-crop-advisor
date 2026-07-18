@@ -16,7 +16,7 @@ const path = require('path');
 
 const EMBED_MODEL = 'gemini-embedding-001'; // 需與 build_kb.py 一致
 const EMBED_DIM = 768;                       // 需與 build_kb.py 一致
-const GEN_MODEL = 'gemini-2.0-flash';
+const GEN_MODEL = 'gemini-2.0-flash-lite'; // 免費額度較寬、輕量快速；適合農友問答
 const API_BASE = 'https://generativelanguage.googleapis.com/v1beta/models';
 
 // kb.json 可能有數 MB；用 require 快取，冷啟動載入一次後常駐記憶體。
