@@ -315,6 +315,27 @@ nav .tab.active .ic{filter:none}
   .greeting h2{font-size:34px}
   .stage-card .thumb{width:92px;height:92px;font-size:40px}
 }
+/* ---- AI 問答（RAG）---- */
+.ai-ask-btn{width:100%;margin-top:10px;padding:12px;border:none;border-radius:14px;
+  background:var(--green);color:#fff;font-size:15px;font-weight:600;cursor:pointer;
+  box-shadow:0 2px 8px rgba(15,138,95,.25)}
+.ai-ask-btn:active{transform:scale(.99)}
+.ai-ask-btn:disabled{opacity:.6}
+#aiAnswer{margin-top:12px}
+.ai-card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+  padding:14px 16px;box-shadow:0 1px 6px rgba(20,60,40,.05)}
+.ai-card .ai-head{display:flex;align-items:center;gap:6px;font-weight:700;color:var(--green-t);
+  font-size:14px;margin-bottom:8px}
+.ai-card .ai-body{font-size:14px;line-height:1.7;color:var(--ink);white-space:pre-wrap}
+.ai-card .ai-src{margin-top:10px;padding-top:10px;border-top:1px dashed var(--line);
+  font-size:12px;color:var(--muted)}
+.ai-card .ai-src b{color:var(--green-d)}
+.ai-card .src-chip{display:inline-block;background:var(--green-l);color:var(--green-d);
+  border-radius:8px;padding:2px 8px;margin:3px 4px 0 0;font-size:11px}
+.ai-spin{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:13px}
+.ai-spin .dot{width:16px;height:16px;border:2px solid var(--green-l);border-top-color:var(--green);
+  border-radius:50%;animation:aispin .8s linear infinite}
+@keyframes aispin{to{transform:rotate(360deg)}}
 </style>
 </head>
 <body>
@@ -496,9 +517,12 @@ nav .tab.active .ic{filter:none}
 
       <div class="search-box">
         <span class="mi">🔍</span>
-        <input id="searchInput" placeholder="輸入症狀、病蟲害或栽培問題" oninput="filterQA()">
+        <input id="searchInput" placeholder="輸入症狀、病蟲害或栽培問題" oninput="filterQA()"
+               onkeydown="if(event.key==='Enter')askAI()">
         <span class="mi">⛶</span>
       </div>
+      <button class="ai-ask-btn" onclick="askAI()">🤖 用 AI 依栽培手冊回答</button>
+      <div id="aiAnswer"></div>
 
       <div class="sec-title" style="margin:16px 4px 8px">熱門搜尋</div>
       <div class="hot-chips" id="hotChips"></div>

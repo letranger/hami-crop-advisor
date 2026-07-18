@@ -55,14 +55,50 @@ app.js          前端邏輯（導覽、診斷、圖表、定位+天氣）
 manifest.json   PWA 設定
 sw.js           Service Worker（離線快取；外部 API 走網路）
 icons/          PWA 圖示
-api/diagnose.js 後端診斷端點（Vercel Serverless；目前回傳模擬）
+api/_rag.js     RAG 共用：Gemini embedding 檢索 + 生成（伺服器端）
+api/ask.js      問題查詢的 RAG 問答端點（Serverless）
+api/diagnose.js 診斷端點（視覺仍模擬；管理建議走 RAG）
+api/kb.json     知識庫向量索引（由 scripts/build_kb.py 產生、進版控）
 vercel.json     Vercel 設定
+../scripts/build_kb.py  離線建立 kb.json（跑一次）
 ```
+
+## RAG 問答（依栽培手冊回答）
+
+「問題查詢」頁的 **🤖 用 AI 依栽培手冊回答**，以及拍照診斷的管理建議，都用
+RAG（檢索增強生成）：把 `docs/` 的栽培手冊建成向量索引，農友提問時先檢索最相關
+段落，再由 Gemini 產生繁中回答並附上引用頁碼。
+
+**供應商：Gemini（單一金鑰、免費額度）**
+- 索引/檢索：`text-embedding-004`（免費）
+- 產生回答：`gemini-2.0-flash`（免費額度）
+- 金鑰在 <https://aistudio.google.com/api-keys> 建立，設為 `GEMINI_API_KEY`，
+  **只放伺服器端**（Vercel 環境變數 / 本機 `.env`），切勿寫進前端。
+
+**建立知識庫索引（跑一次；手冊有更動才需重跑）**
+
+```bash
+pip install -r ../scripts/requirements.txt   # 只需 pymupdf
+export GEMINI_API_KEY=你的金鑰
+python3 ../scripts/build_kb.py               # 產生 prototype/api/kb.json（約 2MB）
+```
+
+預設只索引**中文手冊**（回答為繁中、檢索更精準、kb.json 更小）；要連英文手冊
+一起納入：`INCLUDE_ENGLISH=1 python3 ../scripts/build_kb.py`。把 `kb.json` 一起
+commit，前後端即可做語意檢索。
+
+**本機測試 RAG**：靜態伺服器（`python3 -m http.server`）沒有 `/api/*`，要用
+`npx vercel dev` 啟動並在 `.env` 設 `GEMINI_API_KEY`。沒有金鑰 / 沒建索引時，前端
+會顯示提示、拍照診斷退回內建建議，其餘功能照常。
+
+檔案：`scripts/build_kb.py`（離線建索引）、`api/_rag.js`（檢索+生成共用）、
+`api/ask.js`（問答端點）、`api/diagnose.js`（診斷 + RAG 建議）、`api/kb.json`（索引）。
 
 ## 技術備註
 
 - **定位**：`navigator.geolocation`（免金鑰）
 - **地名**：BigDataCloud 反向地理編碼（免金鑰、支援中文）
 - **天氣**：Open-Meteo（免金鑰、支援 CORS，可前端直接呼叫）
-- **診斷（規劃）**：視覺模型判病名 → RAG 撈知識庫建議 → 回傳；金鑰只放後端
+- **問答 / 診斷建議**：Gemini embedding 檢索栽培手冊 → Gemini 生成繁中回答；金鑰只放後端
+- **診斷病名判讀（規劃）**：Gemini Vision 判病名（目前仍模擬）→ 再走上面的 RAG 建議
 - 內容與介面：繁體中文（zh-TW）

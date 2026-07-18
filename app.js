@@ -183,6 +183,46 @@ function qaTitle(k){
   return map[k.id] || k.name;
 }
 
+/* ============================================================
+   askAI() — 問題查詢的 RAG：把問題送到 /api/ask，
+   由後端檢索 8 本栽培手冊 + Gemini 產生繁中回答（附引用來源）。
+   後端未部署 / 未建索引時會回傳錯誤，這裡以提示訊息優雅退回。
+   ============================================================ */
+function esc(s){ return (s||'').replace(/[&<>]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
+
+async function askAI(){
+  const q = (document.getElementById('searchInput').value||'').trim();
+  const box = document.getElementById('aiAnswer');
+  if(!q){ toast('請先輸入問題'); return; }
+
+  box.innerHTML = `<div class="ai-card"><div class="ai-spin">
+    <span class="dot"></span>AI 正在查閱栽培手冊…</div></div>`;
+
+  try{
+    const res = await fetch('/api/ask', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ question:q })
+    });
+    const data = await res.json();
+    if(!res.ok) throw new Error(data.detail || data.error || ('HTTP '+res.status));
+
+    const src = (data.sources||[])
+      .map(s=>`<span class="src-chip">${esc(s.crop)}·第${s.page}頁</span>`).join('');
+    box.innerHTML = `<div class="ai-card">
+      <div class="ai-head">🤖 AI 依手冊回答</div>
+      <div class="ai-body">${esc(data.answer)}</div>
+      ${src?`<div class="ai-src"><b>參考來源</b><br>${src}</div>`:''}
+    </div>`;
+  }catch(err){
+    box.innerHTML = `<div class="ai-card">
+      <div class="ai-head">🤖 AI 問答</div>
+      <div class="ai-body" style="color:var(--muted)">目前無法取得 AI 回答：${esc(String(err.message||err))}
+      <br><br>（本機測試請用 <b>npx vercel dev</b> 啟動並設定 GEMINI_API_KEY；
+      或先執行 scripts/build_kb.py 建立知識庫索引。下方仍可用關鍵字查詢。）</div>
+    </div>`;
+  }
+}
+
 /* ---------- 溫度 / 濕度雙線趨勢圖（SVG）---------- */
 function renderChartTH(){
   const temp=[22.6,21.9,21.5,22.2,24.1,26.8,28.4,29.1,28.6,27.4,26.0,24.6,23.4];
