@@ -37,22 +37,38 @@ function apiKey() {
   return k;
 }
 
+// 共用：POST 到 Gemini，對 429 / 5xx 做少量退避重試；免費額度超量時給農友看得懂的訊息。
+async function postGemini(url, body, label) {
+  const delays = [800, 2000];   // 最多重試 2 次（serverless 有逾時，不宜太久）
+  for (let attempt = 0; ; attempt++) {
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    if (res.ok) return res.json();
+    const status = res.status;
+    const txt = await res.text();
+    if ((status === 429 || status >= 500) && attempt < delays.length) {
+      await new Promise((r) => setTimeout(r, delays[attempt]));
+      continue;
+    }
+    if (status === 429) {
+      throw new Error(`${label}：AI 使用量暫時達到免費額度上限，請稍候一分鐘再試。`);
+    }
+    throw new Error(`${label}失敗 (${status})：${txt.slice(0, 200)}`);
+  }
+}
+
 // 把一段查詢字串轉成向量（taskType 用 RETRIEVAL_QUERY，和建索引時的 DOCUMENT 對稱）。
 async function embedQuery(text) {
   const url = `${API_BASE}/${EMBED_MODEL}:embedContent?key=${apiKey()}`;
-  const body = {
+  const data = await postGemini(url, {
     model: `models/${EMBED_MODEL}`,
     content: { parts: [{ text }] },
     taskType: 'RETRIEVAL_QUERY',
     outputDimensionality: EMBED_DIM,
-  };
-  const res = await fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-  });
-  if (!res.ok) throw new Error(`Embedding 失敗 (${res.status}): ${await res.text()}`);
-  const data = await res.json();
+  }, '檢索');
   return data.embedding.values;
 }
 
@@ -94,16 +110,10 @@ async function generate(question, contexts) {
     `參考資料：\n${refs}\n\n問題：${question}\n\n回答：`;
 
   const url = `${API_BASE}/${GEN_MODEL}:generateContent?key=${apiKey()}`;
-  const res = await fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      contents: [{ parts: [{ text: prompt }] }],
-      generationConfig: { temperature: 0.3, maxOutputTokens: 800 },
-    }),
-  });
-  if (!res.ok) throw new Error(`生成失敗 (${res.status}): ${await res.text()}`);
-  const data = await res.json();
+  const data = await postGemini(url, {
+    contents: [{ parts: [{ text: prompt }] }],
+    generationConfig: { temperature: 0.3, maxOutputTokens: 800 },
+  }, '生成');
   const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
   if (!text) throw new Error('Gemini 未回傳內容。');
   return text.trim();
