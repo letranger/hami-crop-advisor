@@ -113,6 +113,15 @@ main{padding:0 16px 96px}
 .cta .chev{margin-left:auto;font-size:22px;opacity:.9}
 
 .grid6{display:grid;grid-template-columns:repeat(2,1fr);gap:11px;margin-top:14px}
+/* 首頁主要功能 hero：手機直排、平板並排 */
+.home-hero{display:grid;grid-template-columns:1fr;gap:12px;margin-top:6px}
+.home-hero .cta{margin-top:0}
+.cta-alt{background:linear-gradient(120deg,#eaf6ee,#f2faf4);color:var(--green-t);border:1px solid #dcefe0}
+.cta-alt .cam{background:rgba(15,138,95,.10);color:var(--green-d)}
+.cta-alt span{color:var(--muted);opacity:1}
+.cta-alt .chev{color:var(--green-d);opacity:.85}
+.cta-alt::after{opacity:.08}
+@media(min-width:700px){ .home-hero{grid-template-columns:1fr 1fr} }
 .gitem{background:var(--card);border-radius:16px;padding:14px;box-shadow:0 2px 12px rgba(28,43,34,.05);cursor:pointer;
   transition:transform .12s}
 .gitem:active{transform:scale(.97)}
@@ -359,6 +368,20 @@ nav .tab.active .ic{filter:none}
         </div>
       </div>
 
+      <!-- 主要功能：拍照診斷 + 症狀查詢，置頂 -->
+      <div class="home-hero">
+        <div class="cta" onclick="openCamera()">
+          <div class="cam">📷</div>
+          <div><b>拍照診斷</b><span>拍照上傳，AI 即時診斷作物狀況</span></div>
+          <div class="chev">›</div>
+        </div>
+        <div class="cta cta-alt" onclick="go('search')">
+          <div class="cam">🌿</div>
+          <div><b>症狀查詢</b><span>搜尋病蟲害與缺素症狀</span></div>
+          <div class="chev">›</div>
+        </div>
+      </div>
+
       <div class="weather-card" id="weatherCard">
         <div class="wx-main">
           <span class="wx-icon" id="wxIcon">🌤️</span>
@@ -385,14 +408,7 @@ nav .tab.active .ic{filter:none}
         <div class="thumb">🍈</div>
       </div>
 
-      <div class="cta" onclick="openCamera()">
-        <div class="cam">📷</div>
-        <div><b>拍照診斷</b><span>拍照上傳，AI 即時診斷作物狀況</span></div>
-        <div class="chev">›</div>
-      </div>
-
       <div class="grid6">
-        <div class="gitem" onclick="go('search')"><div class="ic ic-green">🌿</div><b>症狀查詢</b><span>搜尋病蟲害與缺素症狀</span></div>
         <div class="gitem" onclick="go('records')"><div class="ic ic-blue">💻</div><b>環境紀錄</b><span>查看環境數據與歷史紀錄</span></div>
         <div class="gitem" onclick="go('advice')"><div class="ic ic-mint">🌱</div><b>栽培建議</b><span>依生育階段提供專業建議</span></div>
         <div class="gitem" onclick="go('advice')"><div class="ic ic-warn">⚠️</div><b>異常預警</b><span>即時監測異常提醒與通知</span></div>
