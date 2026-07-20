@@ -3,21 +3,29 @@
    ------------------------------------------------------------
    職責：
      1. 載入 kb.json（由 scripts/build_kb.py 離線產生）
-     2. 用 Gemini text-embedding-004 把「查詢字串」轉成向量
+     2. 用 Gemini gemini-embedding-001 把「查詢字串」轉成向量（免費）
      3. 以 cosine similarity 找出最相關的 top-k 塊
-     4. 用 gemini-2.0-flash 依檢索到的內容產生繁中回答（附引用）
+     4. 用 Groq（Llama）依檢索到的內容產生繁中回答（附引用）
 
-   ⚠️ 金鑰只在伺服器端讀取（process.env.GEMINI_API_KEY），
+   供應商拆成兩家：嵌入用 Gemini（免費、額度充足），生成用 Groq（免費、穩定），
+   因為 Gemini 免費層的「生成」配額不敷 demo 使用。
+
+   ⚠️ 兩把金鑰都只在伺服器端讀取：
+        GEMINI_API_KEY（嵌入）、GROQ_API_KEY（生成）
       絕對不要把金鑰或本檔邏輯搬到前端。
    ============================================================ */
 
 const fs = require('fs');
 const path = require('path');
 
-const EMBED_MODEL = 'gemini-embedding-001'; // 需與 build_kb.py 一致
-const EMBED_DIM = 768;                       // 需與 build_kb.py 一致
-const GEN_MODEL = 'gemini-2.0-flash-lite'; // 免費額度較寬、輕量快速；適合農友問答
-const API_BASE = 'https://generativelanguage.googleapis.com/v1beta/models';
+// 嵌入：Gemini（需與 build_kb.py 一致）
+const EMBED_MODEL = 'gemini-embedding-001';
+const EMBED_DIM = 768;
+const GEMINI_BASE = 'https://generativelanguage.googleapis.com/v1beta/models';
+
+// 生成：Groq（OpenAI 相容）。可到 console.groq.com 看可用模型；zh-TW 品質佳、免費穩定。
+const GROQ_MODEL = 'llama-3.3-70b-versatile';
+const GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
 
 // kb.json 可能有數 MB；用 require 快取，冷啟動載入一次後常駐記憶體。
 let _kb = null;
@@ -31,19 +39,24 @@ function loadKB() {
   return _kb;
 }
 
-function apiKey() {
+function geminiKey() {
   const k = process.env.GEMINI_API_KEY;
   if (!k) throw new Error('伺服器未設定 GEMINI_API_KEY 環境變數。');
   return k;
 }
+function groqKey() {
+  const k = process.env.GROQ_API_KEY;
+  if (!k) throw new Error('伺服器未設定 GROQ_API_KEY 環境變數（到 console.groq.com/keys 建立）。');
+  return k;
+}
 
-// 共用：POST 到 Gemini，對 429 / 5xx 做少量退避重試；免費額度超量時給農友看得懂的訊息。
-async function postGemini(url, body, label) {
+// 共用：POST JSON，對 429 / 5xx 做少量退避重試；額度/尖峰時給農友看得懂的訊息。
+async function postJSON(url, body, label, extraHeaders = {}) {
   const delays = [800, 2000];   // 最多重試 2 次（serverless 有逾時，不宜太久）
   for (let attempt = 0; ; attempt++) {
     const res = await fetch(url, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ...extraHeaders },
       body: JSON.stringify(body),
     });
     if (res.ok) return res.json();
@@ -54,16 +67,16 @@ async function postGemini(url, body, label) {
       continue;
     }
     if (status === 429) {
-      throw new Error(`${label}：AI 使用量暫時達到免費額度上限，請稍候一分鐘再試。`);
+      throw new Error(`${label}：AI 使用量暫時達到上限，請稍候片刻再試。`);
     }
     throw new Error(`${label}失敗 (${status})：${txt.slice(0, 200)}`);
   }
 }
 
-// 把一段查詢字串轉成向量（taskType 用 RETRIEVAL_QUERY，和建索引時的 DOCUMENT 對稱）。
+// 把一段查詢字串轉成向量（Gemini；taskType 用 RETRIEVAL_QUERY，和建索引時的 DOCUMENT 對稱）。
 async function embedQuery(text) {
-  const url = `${API_BASE}/${EMBED_MODEL}:embedContent?key=${apiKey()}`;
-  const data = await postGemini(url, {
+  const url = `${GEMINI_BASE}/${EMBED_MODEL}:embedContent?key=${geminiKey()}`;
+  const data = await postJSON(url, {
     model: `models/${EMBED_MODEL}`,
     content: { parts: [{ text }] },
     taskType: 'RETRIEVAL_QUERY',
@@ -97,25 +110,30 @@ async function search(query, k = 5) {
   return retrieve(await embedQuery(query), k);
 }
 
-// 用檢索到的內容請 Gemini 產生繁中回答。回傳純文字。
+// 用檢索到的內容請 Groq（Llama）產生繁中回答。回傳純文字。
 async function generate(question, contexts) {
   const refs = contexts
     .map((c, i) => `【資料${i + 1}｜${c.crop} 第${c.page}頁】\n${c.text}`)
     .join('\n\n');
-  const prompt =
+  const system =
     `你是台灣溫室栽培的農業專家助理，服務對象是麥寮高中的學生與在地農友。\n` +
-    `請「只根據下列參考資料」用繁體中文（zh-TW）回答問題，語氣簡單、步驟清楚、避免艱澀術語。\n` +
-    `若參考資料不足以回答，請誠實說明並建議可諮詢農業改良場，不要杜撰。\n` +
-    `回答結尾用一行標註引用來源，例如：（來源：洋香瓜 第12頁）。\n\n` +
-    `參考資料：\n${refs}\n\n問題：${question}\n\n回答：`;
+    `務必用「繁體中文（台灣用語，zh-TW）」回答，語氣簡單、步驟清楚、避免艱澀術語。\n` +
+    `只能根據使用者提供的「參考資料」回答；若資料不足，誠實說明並建議諮詢當地農業改良場，不要杜撰。\n` +
+    `回答結尾用一行標註引用來源，例如：（來源：洋香瓜 第12頁）。`;
+  const user = `參考資料：\n${refs}\n\n問題：${question}`;
 
-  const url = `${API_BASE}/${GEN_MODEL}:generateContent?key=${apiKey()}`;
-  const data = await postGemini(url, {
-    contents: [{ parts: [{ text: prompt }] }],
-    generationConfig: { temperature: 0.3, maxOutputTokens: 800 },
-  }, '生成');
-  const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-  if (!text) throw new Error('Gemini 未回傳內容。');
+  const data = await postJSON(GROQ_URL, {
+    model: GROQ_MODEL,
+    messages: [
+      { role: 'system', content: system },
+      { role: 'user', content: user },
+    ],
+    temperature: 0.3,
+    max_tokens: 800,
+  }, '生成', { Authorization: `Bearer ${groqKey()}` });
+
+  const text = data?.choices?.[0]?.message?.content;
+  if (!text) throw new Error('Groq 未回傳內容。');
   return text.trim();
 }
 

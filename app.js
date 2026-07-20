@@ -217,7 +217,7 @@ async function askAI(){
     box.innerHTML = `<div class="ai-card">
       <div class="ai-head">🤖 AI 問答</div>
       <div class="ai-body" style="color:var(--muted)">目前無法取得 AI 回答：${esc(String(err.message||err))}
-      <br><br>（本機測試請用 <b>npx vercel dev</b> 啟動並設定 GEMINI_API_KEY；
+      <br><br>（本機測試請用 <b>npx vercel dev</b> 啟動並設定 GEMINI_API_KEY 與 GROQ_API_KEY；
       或先執行 scripts/build_kb.py 建立知識庫索引。下方仍可用關鍵字查詢。）</div>
     </div>`;
   }
