@@ -227,9 +227,7 @@ async function askAI(){
   }catch(err){
     box.innerHTML = `<div class="ai-card">
       <div class="ai-head">🤖 AI 問答</div>
-      <div class="ai-body" style="color:var(--muted)">目前無法取得 AI 回答：${esc(String(err.message||err))}
-      <br><br>（本機測試請用 <b>npx vercel dev</b> 啟動並設定 GEMINI_API_KEY 與 GROQ_API_KEY；
-      或先執行 scripts/build_kb.py 建立知識庫索引。下方仍可用關鍵字查詢。）</div>
+      <div class="ai-body" style="color:var(--muted)">目前無法取得 AI 回答：${esc(String(err.message||err))}<br><br>請稍後再試，或用下方關鍵字查詢。</div>
     </div>`;
   }
 }
@@ -265,8 +263,7 @@ async function askWeb(){
   }catch(err){
     box.innerHTML = `<div class="ai-card web">
       <div class="ai-head">🌐 網路查詢</div>
-      <div class="ai-body" style="color:var(--muted)">目前無法上網查詢：${esc(String(err.message||err))}
-      <br><br>（需在伺服器設定 TAVILY_API_KEY 與 GROQ_API_KEY；本機測試用 <b>npx vercel dev</b>。）</div>
+      <div class="ai-body" style="color:var(--muted)">目前無法上網查詢：${esc(String(err.message||err))}<br><br>請稍後再試，或改用「依栽培手冊回答」。</div>
     </div>`;
   }
 }
