@@ -1,4 +1,4 @@
-# 哈密瓜植栽專家系統 · AI Smart Crop Advisor
+# 溫室植栽專家系統 · AI Smart Crop Advisor
 
 導入 GenAI 的植栽專家系統 — PWA 雛形。雲林縣 AI 創意實作計畫 · 麥寮高中。
 

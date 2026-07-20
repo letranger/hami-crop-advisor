@@ -2,7 +2,7 @@
 <html lang="zh-Hant">
 <head>
 <meta charset="UTF-8">
-<title>哈密瓜植栽專家系統 · AI Smart Crop Advisor</title>
+<title>溫室植栽專家系統 · AI Smart Crop Advisor</title>
 
 <!-- PWA / iOS 全螢幕設定 -->
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
@@ -11,7 +11,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="哈密瓜專家">
+<meta name="apple-mobile-web-app-title" content="溫室植栽專家">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 
 <style>
@@ -343,7 +343,7 @@ nav .tab.active .ic{filter:none}
 
   <div class="appbar">
     <div class="logo">🍈</div>
-    <div class="brand"><b>哈密瓜植栽專家系統</b><span>AI Smart Crop Advisor</span></div>
+    <div class="brand"><b>溫室植栽專家系統</b><span>AI Smart Crop Advisor</span></div>
     <button class="bell" onclick="go('advice')" aria-label="通知">🔔<span class="dot"></span></button>
   </div>
 
@@ -518,7 +518,7 @@ nav .tab.active .ic{filter:none}
       <div class="search-box">
         <span class="mi">🔍</span>
         <input id="searchInput" placeholder="輸入症狀、病蟲害或栽培問題" oninput="filterQA()"
-               onkeydown="if(event.key==='Enter')askAI()">
+               onfocus="onSearchFocus()" onkeydown="if(event.key==='Enter')askAI()">
         <span class="mi">⛶</span>
       </div>
       <button class="ai-ask-btn" onclick="askAI()">🤖 用 AI 依栽培手冊回答</button>

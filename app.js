@@ -1,5 +1,5 @@
 /* ============================================================
-   哈密瓜植栽專家系統 · AI Smart Crop Advisor — PWA 雛形邏輯
+   溫室植栽專家系統 · AI Smart Crop Advisor — PWA 雛形邏輯
    目前診斷為「模擬資料」。之後接 Gemini Vision + RAG 時，只要改 diagnose() 一個函式。
    ============================================================ */
 
@@ -189,6 +189,17 @@ function qaTitle(k){
    後端未部署 / 未建索引時會回傳錯誤，這裡以提示訊息優雅退回。
    ============================================================ */
 function esc(s){ return (s||'').replace(/[&<>]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
+
+/* 點進搜尋框準備問新問題時：若上一題的 AI 回答還在，自動清空舊輸入與舊回答，
+   不必手動刪除。（還沒問過、沒有回答卡時不動作，避免干擾一般編輯／關鍵字查詢。）*/
+function onSearchFocus(){
+  const box = document.getElementById('aiAnswer');
+  if(box && box.querySelector('.ai-card')){
+    document.getElementById('searchInput').value = '';
+    box.innerHTML = '';
+    filterQA();
+  }
+}
 
 async function askAI(){
   const q = (document.getElementById('searchInput').value||'').trim();
