@@ -234,6 +234,43 @@ async function askAI(){
   }
 }
 
+/* ============================================================
+   askWeb() — 「上網查」模式：把問題送到 /api/websearch，
+   由後端用 Tavily 搜尋網路 + Groq 綜合整理。答案標示「來自網路、僅供參考」，
+   並附可點擊的網路來源連結（與依手冊回答分開，避免混淆可信度）。
+   ============================================================ */
+async function askWeb(){
+  const q = (document.getElementById('searchInput').value||'').trim();
+  const box = document.getElementById('aiAnswer');
+  if(!q){ toast('請先輸入問題'); return; }
+
+  box.innerHTML = `<div class="ai-card web"><div class="ai-spin">
+    <span class="dot"></span>AI 正在上網查詢…</div></div>`;
+
+  try{
+    const res = await fetch('/api/websearch', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ question:q })
+    });
+    const data = await res.json();
+    if(!res.ok) throw new Error(data.detail || data.error || ('HTTP '+res.status));
+
+    const src = (data.sources||[])
+      .map(s=>`<a class="src-link" href="${esc(s.url)}" target="_blank" rel="noopener">${esc(s.title)}</a>`).join('');
+    box.innerHTML = `<div class="ai-card web">
+      <div class="ai-head">🌐 網路查詢結果（僅供參考，非栽培手冊）</div>
+      <div class="ai-body">${esc(data.answer)}</div>
+      ${src?`<div class="ai-src"><b>網路來源</b><br>${src}</div>`:''}
+    </div>`;
+  }catch(err){
+    box.innerHTML = `<div class="ai-card web">
+      <div class="ai-head">🌐 網路查詢</div>
+      <div class="ai-body" style="color:var(--muted)">目前無法上網查詢：${esc(String(err.message||err))}
+      <br><br>（需在伺服器設定 TAVILY_API_KEY 與 GROQ_API_KEY；本機測試用 <b>npx vercel dev</b>。）</div>
+    </div>`;
+  }
+}
+
 /* ---------- 溫度 / 濕度雙線趨勢圖（SVG）---------- */
 function renderChartTH(){
   const temp=[22.6,21.9,21.5,22.2,24.1,26.8,28.4,29.1,28.6,27.4,26.0,24.6,23.4];

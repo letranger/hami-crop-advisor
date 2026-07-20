@@ -330,6 +330,11 @@ nav .tab.active .ic{filter:none}
   box-shadow:0 2px 8px rgba(15,138,95,.25)}
 .ai-ask-btn:active{transform:scale(.99)}
 .ai-ask-btn:disabled{opacity:.6}
+/* 上網查按鈕（藍色，和手冊回答區隔）*/
+.ai-ask-btn.web{margin-top:8px;background:#fff;color:var(--blue);border:1.5px solid var(--blue);box-shadow:none}
+.ai-card.web .ai-head{color:var(--blue)}
+.ai-card .src-link{display:inline-block;color:var(--blue);text-decoration:underline;
+  margin:4px 8px 0 0;font-size:13px;word-break:break-all}
 #aiAnswer{margin-top:12px}
 .ai-card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
   padding:14px 16px;box-shadow:0 1px 6px rgba(20,60,40,.05)}
@@ -591,6 +596,7 @@ nav .tab .ic{font-size:26px}
         <span class="mi">⛶</span>
       </div>
       <button class="ai-ask-btn" onclick="askAI()">🤖 用 AI 依栽培手冊回答</button>
+      <button class="ai-ask-btn web" onclick="askWeb()">🌐 上網查最新資訊（非手冊，僅供參考）</button>
       <div id="aiAnswer"></div>
 
       <div class="sec-title" style="margin:16px 4px 8px">熱門搜尋</div>

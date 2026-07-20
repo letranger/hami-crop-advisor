@@ -27,6 +27,9 @@ const GEMINI_BASE = 'https://generativelanguage.googleapis.com/v1beta/models';
 const GROQ_MODEL = 'llama-3.3-70b-versatile';
 const GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
 
+// 網路搜尋：Tavily（專為 LLM 設計、免費額度、免綁卡）。用於「上網查」模式，與手冊 RAG 分開。
+const TAVILY_URL = 'https://api.tavily.com/search';
+
 // kb.json 可能有數 MB；用 require 快取，冷啟動載入一次後常駐記憶體。
 let _kb = null;
 function loadKB() {
@@ -47,6 +50,11 @@ function geminiKey() {
 function groqKey() {
   const k = process.env.GROQ_API_KEY;
   if (!k) throw new Error('伺服器未設定 GROQ_API_KEY 環境變數（到 console.groq.com/keys 建立）。');
+  return k;
+}
+function tavilyKey() {
+  const k = process.env.TAVILY_API_KEY;
+  if (!k) throw new Error('伺服器未設定 TAVILY_API_KEY 環境變數（到 tavily.com 建立，免費）。');
   return k;
 }
 
@@ -137,4 +145,52 @@ async function generate(question, contexts) {
   return text.trim();
 }
 
-module.exports = { loadKB, embedQuery, cosine, retrieve, search, generate };
+/* ===== 「上網查」模式：Tavily 搜尋 → Groq 綜合整理（與手冊 RAG 分開）===== */
+
+// 用 Tavily 搜尋網路，回傳 [{title, url, content}]。
+async function webSearch(query, k = 5) {
+  const key = tavilyKey();
+  const data = await postJSON(TAVILY_URL, {
+    api_key: key,               // 相容舊式：金鑰放 body
+    query,
+    max_results: k,
+    search_depth: 'basic',
+    include_answer: false,
+    topic: 'general',
+  }, '網路搜尋', { Authorization: `Bearer ${key}` }); // 相容新式：金鑰放 header
+  return (data.results || []).map((r) => ({
+    title: r.title || r.url,
+    url: r.url,
+    content: (r.content || '').slice(0, 1200),
+  }));
+}
+
+// 用網路搜尋結果請 Groq 綜合整理成繁中回答（明確標示來自網路、僅供參考）。
+async function generateWeb(question, results) {
+  const refs = results
+    .map((r, i) => `【來源${i + 1}｜${r.title}】${r.url}\n${r.content}`)
+    .join('\n\n');
+  const system =
+    `你是台灣溫室栽培的農業助理，服務對象是麥寮高中的學生與在地農友。\n` +
+    `以下是「網路搜尋結果」，請用繁體中文（台灣用語，zh-TW）綜合整理出實用答案，語氣簡單、步驟清楚。\n` +
+    `注意：網路資訊未必正確或不一定適用台灣，若有不確定請提醒使用者查證、或諮詢當地農業改良場。\n` +
+    `只根據下列搜尋結果作答，不要杜撰；資訊不足就說明。`;
+  const user = `網路搜尋結果：\n${refs}\n\n問題：${question}`;
+  const data = await postJSON(GROQ_URL, {
+    model: GROQ_MODEL,
+    messages: [
+      { role: 'system', content: system },
+      { role: 'user', content: user },
+    ],
+    temperature: 0.3,
+    max_tokens: 900,
+  }, '生成', { Authorization: `Bearer ${groqKey()}` });
+  const text = data?.choices?.[0]?.message?.content;
+  if (!text) throw new Error('Groq 未回傳內容。');
+  return text.trim();
+}
+
+module.exports = {
+  loadKB, embedQuery, cosine, retrieve, search, generate,
+  webSearch, generateWeb,
+};
