@@ -150,11 +150,14 @@ async function generate(question, contexts) {
 // 用 Tavily 搜尋網路，回傳 [{title, url, content}]。
 async function webSearch(query, k = 5) {
   const key = tavilyKey();
+  // 這是農業 App：替查詢補上領域關鍵字，讓結果更貼近台灣栽培／病蟲害防治，
+  // 而非一般百科／品種介紹（避免抓到離題頁面）。
+  const agriQuery = `${query} 台灣 溫室栽培 病蟲害 防治`;
   const data = await postJSON(TAVILY_URL, {
     api_key: key,               // 相容舊式：金鑰放 body
-    query,
+    query: agriQuery,
     max_results: k,
-    search_depth: 'basic',
+    search_depth: 'advanced',   // 進階搜尋，抓到更相關的內容片段
     include_answer: false,
     topic: 'general',
   }, '網路搜尋', { Authorization: `Bearer ${key}` }); // 相容新式：金鑰放 header
