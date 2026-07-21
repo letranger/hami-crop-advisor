@@ -207,7 +207,7 @@ async function askAI(){
   if(!q){ toast('請先輸入問題'); return; }
 
   box.innerHTML = `<div class="ai-card"><div class="ai-spin">
-    <span class="dot"></span>AI 正在查閱栽培手冊…</div></div>`;
+    <span class="dot"></span>AI 正在查閱手冊與網路…</div></div>`;
 
   try{
     const res = await fetch('/api/ask', {
@@ -217,12 +217,18 @@ async function askAI(){
     const data = await res.json();
     if(!res.ok) throw new Error(data.detail || data.error || ('HTTP '+res.status));
 
-    const src = (data.sources||[])
-      .map(s=>`<span class="src-chip">${esc(s.crop)}·第${s.page}頁</span>`).join('');
+    const s = data.sources || {};
+    const manual = (s.manual||[])
+      .map(x=>`<span class="src-chip">${esc(x.crop)}·第${x.page}頁</span>`).join('');
+    const web = (s.web||[])
+      .map(x=>`<a class="src-link" href="${esc(x.url)}" target="_blank" rel="noopener">${esc(x.title)}</a>`).join('');
+    let srcHtml = '';
+    if(manual) srcHtml += `<div class="ai-src"><b>📖 手冊來源（可信）</b><br>${manual}</div>`;
+    if(web) srcHtml += `<div class="ai-src"><b>🌐 網路來源（僅供參考）</b><br>${web}</div>`;
     box.innerHTML = `<div class="ai-card">
-      <div class="ai-head">🤖 AI 依手冊回答</div>
+      <div class="ai-head">🤖 AI 回答（依手冊＋網路）</div>
       <div class="ai-body">${esc(data.answer)}</div>
-      ${src?`<div class="ai-src"><b>參考來源</b><br>${src}</div>`:''}
+      ${srcHtml}
     </div>`;
   }catch(err){
     box.innerHTML = `<div class="ai-card">
@@ -232,41 +238,6 @@ async function askAI(){
   }
 }
 
-/* ============================================================
-   askWeb() — 「上網查」模式：把問題送到 /api/websearch，
-   由後端用 Tavily 搜尋網路 + Groq 綜合整理。答案標示「來自網路、僅供參考」，
-   並附可點擊的網路來源連結（與依手冊回答分開，避免混淆可信度）。
-   ============================================================ */
-async function askWeb(){
-  const q = (document.getElementById('searchInput').value||'').trim();
-  const box = document.getElementById('aiAnswer');
-  if(!q){ toast('請先輸入問題'); return; }
-
-  box.innerHTML = `<div class="ai-card web"><div class="ai-spin">
-    <span class="dot"></span>AI 正在上網查詢…</div></div>`;
-
-  try{
-    const res = await fetch('/api/websearch', {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ question:q })
-    });
-    const data = await res.json();
-    if(!res.ok) throw new Error(data.detail || data.error || ('HTTP '+res.status));
-
-    const src = (data.sources||[])
-      .map(s=>`<a class="src-link" href="${esc(s.url)}" target="_blank" rel="noopener">${esc(s.title)}</a>`).join('');
-    box.innerHTML = `<div class="ai-card web">
-      <div class="ai-head">🌐 網路查詢結果（僅供參考，非栽培手冊）</div>
-      <div class="ai-body">${esc(data.answer)}</div>
-      ${src?`<div class="ai-src"><b>網路來源</b><br>${src}</div>`:''}
-    </div>`;
-  }catch(err){
-    box.innerHTML = `<div class="ai-card web">
-      <div class="ai-head">🌐 網路查詢</div>
-      <div class="ai-body" style="color:var(--muted)">目前無法上網查詢：${esc(String(err.message||err))}<br><br>請稍後再試，或改用「依栽培手冊回答」。</div>
-    </div>`;
-  }
-}
 
 /* ---------- 溫度 / 濕度雙線趨勢圖（SVG）---------- */
 function renderChartTH(){

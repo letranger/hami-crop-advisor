@@ -190,7 +190,43 @@ async function generateWeb(question, results) {
   return text.trim();
 }
 
+/* ===== 合併模式：手冊(優先) + 網路(補充) → 一個回答，逐點標註來源 ===== */
+async function generateMerged(question, manualHits, webResults) {
+  const manualRefs = (manualHits || [])
+    .map((c, i) => `【手冊${i + 1}｜${c.crop} 第${c.page}頁】\n${c.text}`)
+    .join('\n\n');
+  const webRefs = (webResults || [])
+    .map((r, i) => `【網路${i + 1}｜${r.title}】${r.url}\n${r.content}`)
+    .join('\n\n');
+
+  const system =
+    `你是台灣溫室栽培的農業專家助理，服務對象是麥寮高中的學生與在地農友。\n` +
+    `用繁體中文（台灣用語，zh-TW）回答，語氣簡單、步驟清楚、避免艱澀術語。\n` +
+    `你會拿到兩種資料：「栽培手冊」（可信，優先採用）與「網路搜尋結果」（僅供參考、可能不準或不一定適用台灣）。\n` +
+    `規則：\n` +
+    `1) 優先根據手冊回答；手冊沒有、或需要補充較新資訊時，才引用網路。\n` +
+    `2) 每個重點結尾用括號標註依據，例如（手冊：洋香瓜 第12頁）或（網路：來源標題）。\n` +
+    `3) 只根據下列提供的資料作答，不要杜撰；若兩邊都沒有相關資訊，就誠實說明並建議諮詢當地農業改良場。`;
+  const user =
+    `【栽培手冊】\n${manualRefs || '（無相關手冊段落）'}\n\n` +
+    `【網路搜尋結果】\n${webRefs || '（無網路結果）'}\n\n` +
+    `問題：${question}`;
+
+  const data = await postJSON(GROQ_URL, {
+    model: GROQ_MODEL,
+    messages: [
+      { role: 'system', content: system },
+      { role: 'user', content: user },
+    ],
+    temperature: 0.3,
+    max_tokens: 1000,
+  }, '生成', { Authorization: `Bearer ${groqKey()}` });
+  const text = data?.choices?.[0]?.message?.content;
+  if (!text) throw new Error('Groq 未回傳內容。');
+  return text.trim();
+}
+
 module.exports = {
   loadKB, embedQuery, cosine, retrieve, search, generate,
-  webSearch, generateWeb,
+  webSearch, generateWeb, generateMerged,
 };

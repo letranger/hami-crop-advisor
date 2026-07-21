@@ -595,8 +595,7 @@ nav .tab .ic{font-size:26px}
                onfocus="onSearchFocus()" onkeydown="if(event.key==='Enter')askAI()">
         <span class="mi">⛶</span>
       </div>
-      <button class="ai-ask-btn" onclick="askAI()">🤖 用 AI 依栽培手冊回答</button>
-      <button class="ai-ask-btn web" onclick="askWeb()">🌐 上網查最新資訊（非手冊，僅供參考）</button>
+      <button class="ai-ask-btn" onclick="askAI()">🤖 問 AI（查手冊＋網路，附來源）</button>
       <div id="aiAnswer"></div>
 
       <div class="sec-title" style="margin:16px 4px 8px">熱門搜尋</div>
@@ -646,6 +645,7 @@ nav .tab .ic{font-size:26px}
     <button class="tab" data-view="diag" onclick="go('diag')"><span class="ic">📷</span>診斷</button>
     <button class="tab" data-view="records" onclick="go('records')"><span class="ic">📋</span>紀錄</button>
     <button class="tab" data-view="advice" onclick="go('advice')"><span class="ic">🌿</span>建議</button>
+    <button class="tab" onclick="window.open('https://www.facebook.com/groups/1436930536573857/','_blank','noopener')"><span class="ic">👥</span>社群</button>
     <button class="tab" data-view="profile" onclick="go('profile')"><span class="ic">👤</span>我的</button>
   </nav>
 
