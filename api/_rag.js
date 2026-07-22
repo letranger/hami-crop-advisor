@@ -58,6 +58,84 @@ function tavilyKey() {
   return k;
 }
 
+/* ---- 429（額度上限）解析：把供應商回傳的「要等多久／哪一種上限」翻成農友看得懂的話 ----
+   Groq 的 429 內文長這樣：
+     ... on tokens per minute (TPM): Limit 12000, ... Please try again in 4.891s. ...
+   並帶 `retry-after` 標頭（秒）。我們解析出秒數與限制類型（每分鐘 / 每日），顯示確切等待時間。 */
+
+// 把 "2h30m12.34s" / "4.891s" / "1m30s" 這種時間字串轉成秒數；解析不到回傳 null。
+function parseDurationToSeconds(str) {
+  let total = 0, matched = false;
+  const re = /([\d.]+)\s*(h|m|s)/gi;
+  let m;
+  while ((m = re.exec(str))) {
+    matched = true;
+    const v = parseFloat(m[1]);
+    const u = m[2].toLowerCase();
+    total += u === 'h' ? v * 3600 : u === 'm' ? v * 60 : v;
+  }
+  return matched ? total : null;
+}
+
+// 從 429 內文抓出「Please try again in ...」的等待秒數。
+function extractWaitSeconds(txt) {
+  const m = /try again in ([0-9hms.\s]+)/i.exec(txt || '');
+  return m ? parseDurationToSeconds(m[1]) : null;
+}
+
+// 判斷是「每日」還是「每分鐘」上限。
+function limitDimension(txt) {
+  const t = (txt || '').toLowerCase();
+  if (/per day|\(tpd\)|\(rpd\)/.test(t)) return 'day';
+  if (/per minute|\(tpm\)|\(rpm\)/.test(t)) return 'minute';
+  return null;
+}
+
+// 秒數 → 中文（不含「約」字，模板再自行加）："8 秒" / "3 分鐘" / "2 小時 30 分鐘"。
+function humanizeWait(sec) {
+  const s = Math.ceil(sec);
+  if (s < 90) return `${s} 秒`;
+  const mins = Math.round(s / 60);
+  if (mins < 90) return `${mins} 分鐘`;
+  const h = Math.floor(s / 3600), mm = Math.round((s % 3600) / 60);
+  return mm ? `${h} 小時 ${mm} 分鐘` : `${h} 小時`;
+}
+
+// 目前時間 + sec 秒 = 台灣時間時鐘（給「等比較久」時附上大概幾點恢復）。
+function taipeiClock(sec) {
+  const d = new Date(Date.now() + sec * 1000);
+  return new Intl.DateTimeFormat('zh-TW', {
+    timeZone: 'Asia/Taipei', hour: '2-digit', minute: '2-digit', hour12: false,
+  }).format(d);
+}
+
+// 組出接在「AI 使用量暫時達到上限」後面的說明字串。
+function describeRateLimit(txt, headers) {
+  let seconds = extractWaitSeconds(txt);
+  if (seconds == null && headers && typeof headers.get === 'function') {
+    const ra = parseFloat(headers.get('retry-after'));
+    if (!isNaN(ra)) seconds = ra;
+  }
+  const dim = limitDimension(txt);
+
+  if (seconds == null || seconds <= 0) {
+    if (dim === 'day') return '（今日免費額度已用完），需等到台灣時間隔天早上 8 點後才會恢復，請先用下方關鍵字查詢。';
+    return '，請稍候片刻再試。';
+  }
+  const human = humanizeWait(seconds);
+  const clock = seconds >= 300 ? `（約 ${taipeiClock(seconds)} 恢復）` : '';
+  if (dim === 'day') return `（今日免費額度已用完），預計 ${human}後恢復${clock}，可先用下方關鍵字查詢。`;
+  if (dim === 'minute') return `（每分鐘額度用完），約 ${human}後恢復，稍等再按一次即可。`;
+  return `，預計 ${human}後恢復${clock}，請再試一次。`;
+}
+
+// 429 是否「一時半刻好不了」（每日上限、或等待 > 5 秒）——是的話重試也沒用，直接報明確訊息。
+function isLongWait(txt) {
+  const s = extractWaitSeconds(txt);
+  if (s != null) return s > 5;
+  return limitDimension(txt) === 'day';
+}
+
 // 共用：POST JSON，對 429 / 5xx 做少量退避重試；額度/尖峰時給農友看得懂的訊息。
 async function postJSON(url, body, label, extraHeaders = {}) {
   const delays = [800, 2000];   // 最多重試 2 次（serverless 有逾時，不宜太久）
@@ -70,12 +148,15 @@ async function postJSON(url, body, label, extraHeaders = {}) {
     if (res.ok) return res.json();
     const status = res.status;
     const txt = await res.text();
-    if ((status === 429 || status >= 500) && attempt < delays.length) {
+    // 5xx 一律退避重試；429 只有在「幾秒內可恢復」時才重試（每日/長等待重試也沒用，直接報明確訊息）。
+    const retriable = attempt < delays.length &&
+      (status >= 500 || (status === 429 && !isLongWait(txt)));
+    if (retriable) {
       await new Promise((r) => setTimeout(r, delays[attempt]));
       continue;
     }
     if (status === 429) {
-      throw new Error(`${label}：AI 使用量暫時達到上限，請稍候片刻再試。`);
+      throw new Error(`${label}：AI 使用量暫時達到上限${describeRateLimit(txt, res.headers)}`);
     }
     throw new Error(`${label}失敗 (${status})：${txt.slice(0, 200)}`);
   }
