@@ -40,8 +40,8 @@ let demoIdx = 0;
 /* ---------- 導覽 ---------- */
 function go(id){
   document.querySelectorAll('.view').forEach(v=>v.classList.toggle('active', v.id===id));
-  // 問題查詢(search)歸在「建議」分頁底下，維持底部高亮
-  const navId = id==='search' ? 'advice' : id;
+  // 子頁維持底部分頁高亮：問題查詢→建議；拍照診斷(已無獨立分頁)→首頁
+  const navId = id==='search' ? 'advice' : id==='diag' ? 'home' : id;
   document.querySelectorAll('nav .tab[data-view]').forEach(t=>t.classList.toggle('active', t.dataset.view===navId));
   window.scrollTo(0,0);
 }
