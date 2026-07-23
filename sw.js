@@ -1,7 +1,7 @@
 /* Service Worker — 讓 PWA 可被「安裝」並支援離線
  * 策略：網路優先(network-first)。線上時永遠抓最新檔並順手更新快取，
  * 只有離線(fetch 失敗)才用快取墊底 → 不會再卡在舊版本。 */
-const CACHE = 'planting-diagnosis-v24';
+const CACHE = 'planting-diagnosis-v25';
 const ASSETS = ['./', 'index.html', 'app.js', 'manifest.json',
   'icons/icon-192.png', 'icons/icon-512.png'];
 

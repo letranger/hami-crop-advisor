@@ -65,7 +65,9 @@ function onPhoto(e){
 /* ---------- 診斷流程 ---------- */
 async function runDiagnosis(imgDataUrl){
   go('diag');
-  document.getElementById('vfPhoto').src = imgDataUrl;      // 取景框顯示拍到的照片
+  document.getElementById('vfPhoto').src = imgDataUrl;      // 預覽框顯示拍到的照片
+  document.getElementById('captureBox').classList.add('has-photo');
+  renderDiagRecent();                                       // 同時顯示最近拍照診斷歷史
   const card=document.getElementById('diagCard');
   card.innerHTML = `<div class="spinner"></div>
     <p style="text-align:center;color:var(--muted);font-size:13px;margin:0">AI 分析中，請稍候…</p>`;
@@ -192,6 +194,9 @@ function makeThumb(dataUrl, cb){
   }catch(e){ cb(''); }
 }
 
+/* 進入拍照診斷頁（首頁入口）：顯示頁面 + 載入最近歷史 */
+function openDiag(){ go('diag'); renderDiagRecent(); }
+
 /* 拍照診斷 → 本機留存 + 上傳全體共享（後端未設定時自動忽略，不影響本機）*/
 function recordImageDiagnosis(imgDataUrl, r){
   const k = KNOWLEDGE.find(x=>x.id===r.id) || KNOWLEDGE[0];
@@ -203,9 +208,39 @@ function recordImageDiagnosis(imgDataUrl, r){
       method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({ condId:r.id, cond: healthy?'植株健康':k.name,
         conf:r.conf, healthy, advice:k.advice, thumb })
-    }).catch(()=>{});
+    }).then(()=>{ invalidateRecords(); renderDiagRecent(); })  // 上傳後刷新歷史，納入這次
+      .catch(()=>{});
   });
 }
+
+/* 最近拍照診斷歷史（優先全體共享，後端無則退回本機），點卡片看詳情 */
+let _diagRecent = [];
+async function renderDiagRecent(){
+  const list = document.getElementById('diagRecentList');
+  if(!list) return;
+  const data = await getRecords();
+  let items = data.configured
+    ? data.records.filter(x=>x.type==='image').slice(0,5)
+    : loadRecords().filter(x=>x.type==='image').slice(0,5);
+  _diagRecent = items;
+  if(!items.length){
+    list.innerHTML = `<div class="card" style="text-align:center;color:var(--muted);font-size:13px">還沒有拍照診斷紀錄，點上方拍一張開始第一次診斷。</div>`;
+    return;
+  }
+  list.innerHTML = items.map((r,i)=>{
+    const face = r.thumb ? `<img class="thumb" src="${r.thumb}" alt="">` : `<div class="badge">${r.healthy?'🌱':'🔬'}</div>`;
+    const title = r.healthy ? '植株健康' : '疑似' + esc(r.cond||'');
+    const cnt = r.count && r.count>1 ? `<span class="rcount">社群診斷 ${r.count} 次</span>` : '';
+    return `<div class="rec" onclick="openDiagRecent(${i})">
+      ${face}
+      <div class="rbody">
+        <div class="rtop"><b>${title}</b><span class="rtype img">拍照診斷</span>${cnt}</div>
+        <div class="rsub">${r.conf?`可能性 ${r.conf}%`:''}${r.advice?'｜'+esc(r.advice):''}</div>
+        <time>${esc(recTimeText(r))}</time>
+      </div></div>`;
+  }).join('');
+}
+function openDiagRecent(i){ showRecDetail(_diagRecent[i]); }
 
 /* 問題查詢 → 本機留存（共享端由 /api/ask 後端於作答時直接寫入）*/
 function recordTextDiagnosis(question, answer, sources){
@@ -288,8 +323,8 @@ async function renderRecords(){
 }
 
 /* 詳情彈窗 */
-function openRecDetail(idx){
-  const r = _recView[idx];
+function openRecDetail(idx){ showRecDetail(_recView[idx]); }
+function showRecDetail(r){
   if(!r) return;
   const sheet = document.getElementById('recSheet');
   const t = recTimeText(r);
