@@ -326,11 +326,40 @@ function clearRecords(){
 }
 
 /* ---------- 問題查詢（症狀選單 / 知識庫）---------- */
-/* 預設熱門主題（無使用者提問紀錄時，或不足時用來補滿）*/
-const HOT_SEED = [
-  {t:'葉片黃化',ic:'🌿'},{t:'白粉病',ic:'🍈'},{t:'葉片捲曲',ic:'🌱'},{t:'果實裂果',ic:'🍈'},
-  {t:'生長停滯',ic:'🌱'},{t:'蟲害',ic:'🐛'},{t:'缺肥',ic:'🧪'},{t:'灌溉問題',ic:'💧'},
+/* 共享記錄快取（關鍵字診斷與最近查詢共用一次抓取，避免重複請求）*/
+let _recCache=null, _recCacheT=0, _recPromise=null;
+async function getRecords(){
+  const now=Date.now();
+  if(_recCache && now-_recCacheT<4000) return _recCache;
+  if(_recPromise) return _recPromise;
+  const p=(async()=>{
+    try{ const r=await fetch('/api/records?limit=100');
+      if(r.ok){ const d=await r.json(); _recCache={configured:!!d.configured, records:d.records||[]}; _recCacheT=Date.now(); return _recCache; }
+    }catch(e){}
+    _recCache={configured:false, records:[]}; _recCacheT=Date.now(); return _recCache;
+  })();
+  _recPromise=p;
+  try{ return await p; } finally { if(_recPromise===p) _recPromise=null; }
+}
+function invalidateRecords(){ _recCache=null; _recCacheT=0; _recPromise=null; }  // 亦取消在途抓取，強制重抓
+
+/* 關鍵字診斷：精簡的領域關鍵字辭典。中文無內建斷詞，改用「辭典比對」——
+   掃描所有問過的問題，命中哪些關鍵字就統計加權次數，最常見的幾個浮上來。*/
+const KW_LEX = [
+  '哈密瓜','洋香瓜','小黃瓜','番茄','甜椒','花生',
+  '白粉病','露菌病','炭疽病','病毒','蟲害','薊馬','蚜蟲','紅蜘蛛',
+  '黃化','捲曲','裂果','落花','日燒','缺肥',
+  '澆水','灌溉','施肥','溫度','濕度','光照','甜度','收成','採收','育苗','移植','疏果',
 ];
+const KW_SEED = ['白粉病','露菌病','黃化','裂果','缺肥','蟲害'];   // 沒紀錄時的預設關鍵字
+function kwEmoji(k){
+  if(/瓜|茄|椒|花生/.test(k)) return '🍈';
+  if(/病|菌|毒/.test(k)) return '🦠';
+  if(/蟲|薊馬|蚜|蜘蛛/.test(k)) return '🐛';
+  if(/肥|黃化|落花|裂果|日燒/.test(k)) return '🌱';
+  if(/水|灌溉|濕|溫|光照/.test(k)) return '💧';
+  return '🔍';
+}
 /* ---- 動態熱門：記錄使用者實際按「問 AI」問過的問題，最常問的浮上來 ---- */
 const HOTQ_KEY = 'hotQueries';
 function loadHotQueries(){ try{ return JSON.parse(localStorage.getItem(HOTQ_KEY)) || {}; }catch(e){ return {}; } }
@@ -347,38 +376,37 @@ function bumpHotQuery(q){
   }
   try{ localStorage.setItem(HOTQ_KEY, JSON.stringify(m)); }catch(e){}
 }
-/* 組出要顯示的膠囊：先放使用者最常問的（依次數→最近），再用預設主題補到 8 個 */
-function hotChipsData(){
-  const m = loadHotQueries();
-  const dyn = Object.keys(m)
-    .map(q=>({ t:q, ic:'🔥', n:m[q].n, ts:m[q].ts, dyn:true }))
-    .sort((a,b)=> (b.n-a.n) || (b.ts-a.ts))
-    .slice(0,6);
-  const have = new Set(dyn.map(d=>d.t));
-  const seeds = HOT_SEED.filter(s=>!have.has(s.t)).map(s=>({ ...s, dyn:false }));
-  return dyn.concat(seeds).slice(0,8);
+/* 從所有問過的問題萃取關鍵字（依加權出現次數排序），數量精簡 */
+async function buildKeywords(){
+  const data = await getRecords();
+  let qs = [];
+  if(data.configured) qs = data.records.filter(x=>x.type==='text').map(x=>({ q:x.question, w:x.count||1 }));
+  if(!qs.length){ const m=loadHotQueries(); qs = Object.keys(m).map(q=>({ q, w:m[q].n })); }
+  const score = {};
+  for(const {q,w} of qs) for(const kw of KW_LEX) if(q.includes(kw)) score[kw]=(score[kw]||0)+w;
+  let kws = Object.keys(score).sort((a,b)=> score[b]-score[a]);
+  for(const s of KW_SEED){ if(kws.length>=6) break; if(!kws.includes(s)) kws.push(s); }  // 不足補預設
+  return kws.slice(0, 8);                     // 不要太多關鍵字
 }
-let _hotChips = [];
-function renderHotChips(){
+let _kwChips = [];
+async function renderKeywords(){
   const el = document.getElementById('hotChips');
   if(!el) return;
-  _hotChips = hotChipsData();
-  el.innerHTML = _hotChips.map((h,i)=>{
-    const label = h.t.length > 14 ? h.t.slice(0,14) + '…' : h.t;   // 長問題截斷顯示
-    return `<span class="hc" title="${esc(h.t)}" onclick="quickSearchIdx(${i})">${h.ic} ${esc(label)}</span>`;
-  }).join('');
+  _kwChips = (await buildKeywords()).map(k=>({ t:k, ic:kwEmoji(k) }));
+  el.innerHTML = _kwChips.map((h,i)=>
+    `<span class="hc" onclick="quickSearchIdx(${i})">${h.ic} ${esc(h.t)}</span>`).join('');
 }
 
 function renderSearch(){
-  renderHotChips();
+  renderKeywords();
   renderRecentQueries();
 }
-/* 用索引查表，避免把自由文字問題塞進 inline onclick 造成引號破損／注入 */
+/* 點關鍵字 → 以該關鍵字問 AI（同題命中快取秒回）*/
 function quickSearchIdx(i){
-  const h=_hotChips[i]; if(!h) return;
+  const h=_kwChips[i]; if(!h) return;
   document.getElementById('searchInput').value = h.t;
-  window.scrollTo(0,0);                       // 捲回頂端，讓使用者看到搜尋框已填入
-  askAI();                                    // 點熱門膠囊 → 直接問 AI（同題命中快取秒回）
+  window.scrollTo(0,0);
+  askAI();
 }
 
 /* 最近查詢：顯示最近 5 筆問答（優先全體共享，後端無則退回本機最近提問），
@@ -387,16 +415,12 @@ let _recentQ = [];
 async function renderRecentQueries(){
   const list = document.getElementById('qaList');
   if(!list) return;
+  const data = await getRecords();
   let items = [];
-  try{
-    const r = await fetch('/api/records?limit=30');
-    if(r.ok){ const d = await r.json();
-      if(d.configured){
-        items = (d.records||[]).filter(x=>x.type==='text').slice(0,5)
-          .map(x=>({ q:x.question, count:x.count||1 }));
-      }
-    }
-  }catch(e){}
+  if(data.configured){
+    items = data.records.filter(x=>x.type==='text').slice(0,5)
+      .map(x=>({ q:x.question, count:x.count||1 }));
+  }
   if(!items.length){                          // 退回本機最近提問
     const m = loadHotQueries();
     items = Object.keys(m).map(q=>({ q, ts:m[q].ts, count:m[q].n }))
@@ -444,7 +468,7 @@ async function askAI(){
   const box = document.getElementById('aiAnswer');
   if(!q){ toast('請先輸入問題'); return; }
 
-  bumpHotQuery(q); renderHotChips();          // 記錄真實提問 → 熱門搜尋動態更新
+  bumpHotQuery(q);                            // 本機記錄提問（後端無時的關鍵字/最近查詢來源）
 
   box.innerHTML = `<div class="ai-card"><div class="ai-spin">
     <span class="dot"></span>AI 正在查閱手冊與網路…</div></div>`;
@@ -479,7 +503,7 @@ async function askAI(){
       ${srcHtml}
     </div>`;
     recordTextDiagnosis(q, data.answer, data.sources);   // 本機留存（共享端後端已寫入）
-    renderRecentQueries();                                // 剛問的題目更新到「最近查詢」
+    invalidateRecords(); renderKeywords(); renderRecentQueries();  // 更新關鍵字與最近查詢
   }catch(err){
     // 農民導向：不顯示技術錯誤字串，改用白話提示
     const offline = err.message==='SERVICE_OFFLINE' || /Failed to fetch|NetworkError|Load failed/i.test(String(err.message||''));
