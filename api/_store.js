@@ -6,8 +6,21 @@
    · 未設定金鑰時 isConfigured()=false → 呼叫端優雅退回，
      維持「每次即時查詢、單機 localStorage」的原行為，App 不會壞
    ============================================================ */
-const BASE  = process.env.UPSTASH_REDIS_REST_URL   || process.env.KV_REST_API_URL   || '';
-const TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN || '';
+/* 自動偵測 Upstash/KV 的環境變數：先認常見名稱，找不到再掃描任何
+   以 REST_URL / REST_API_URL 結尾的鍵（token 同理，且排除唯讀 token）。
+   如此無論 Vercel 整合用什麼前綴都能接上。 */
+function envBy(re, avoid) {
+  const k = Object.keys(process.env).find(
+    (k) => re.test(k) && (!avoid || !avoid.test(k)) && process.env[k]
+  );
+  return k ? process.env[k] : '';
+}
+const BASE =
+  process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL ||
+  envBy(/(^|_)REST_API_URL$/) || envBy(/(^|_)REST_URL$/) || '';
+const TOKEN =
+  process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN ||
+  envBy(/(^|_)REST_API_TOKEN$/, /READ_ONLY/) || envBy(/(^|_)REST_TOKEN$/, /READ_ONLY/) || '';
 
 function isConfigured() { return !!(BASE && TOKEN); }
 
