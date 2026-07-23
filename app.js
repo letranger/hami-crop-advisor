@@ -72,6 +72,7 @@ async function runDiagnosis(imgDataUrl){
 
   const result = await diagnose(imgDataUrl);
   renderResult(card, result);
+  recordImageDiagnosis(imgDataUrl, result);              // 存入診斷記錄
 }
 
 /* ============================================================
@@ -143,22 +144,206 @@ function timeStamp(){
   return `${p(d.getMonth()+1)}/${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;
 }
 
+/* ============================================================
+   診斷記錄 — 用 localStorage 保存過往的「拍照診斷」與「問題查詢」，
+   在「我的 → 診斷記錄」查看。純前端、離線可用；未來若接後端可改存雲端。
+   ============================================================ */
+const REC_KEY = 'diagRecords';
+let recFilter = 'all';
+
+function loadRecords(){
+  try{ return JSON.parse(localStorage.getItem(REC_KEY)) || []; }catch(e){ return []; }
+}
+function saveRecords(arr){
+  try{ localStorage.setItem(REC_KEY, JSON.stringify(arr)); }
+  catch(e){ /* 配額不足：捨棄最舊的再試一次 */
+    try{ localStorage.setItem(REC_KEY, JSON.stringify(arr.slice(0,20))); }catch(_){}}
+}
+function addRecord(rec){
+  const arr = loadRecords();
+  rec.id = String(Date.now()) + Math.random().toString(36).slice(2,7);
+  rec.ts = Date.now();
+  rec.time = timeStamp();
+  arr.unshift(rec);
+  if(arr.length > 60) arr.length = 60;                    // 上限，避免占滿儲存空間
+  saveRecords(arr);
+  updateRecCount();
+}
+function updateRecCount(){
+  const el = document.getElementById('recCount');
+  if(el){ const n = loadRecords().length; el.textContent = n ? '共 ' + n + ' 筆' : '尚無記錄'; }
+}
+
+/* 把照片縮成小縮圖（省儲存空間，localStorage 只約 5MB）*/
+function makeThumb(dataUrl, cb){
+  try{
+    const img = new Image();
+    img.onload = ()=>{
+      const max = 200, scale = Math.min(1, max / Math.max(img.width, img.height));
+      const c = document.createElement('canvas');
+      c.width = Math.round(img.width * scale); c.height = Math.round(img.height * scale);
+      c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+      try{ cb(c.toDataURL('image/jpeg', 0.7)); }catch(e){ cb(''); }
+    };
+    img.onerror = ()=>cb('');
+    img.src = dataUrl;
+  }catch(e){ cb(''); }
+}
+
+/* 拍照診斷 → 存記錄 */
+function recordImageDiagnosis(imgDataUrl, r){
+  const k = KNOWLEDGE.find(x=>x.id===r.id) || KNOWLEDGE[0];
+  const healthy = r.id==='healthy';
+  makeThumb(imgDataUrl, thumb=>{
+    addRecord({ type:'image', healthy, conf:r.conf, thumb,
+      cond: healthy ? '植株健康' : k.name, advice: k.advice, tags: k.tags });
+  });
+}
+
+/* 問題查詢 → 存記錄（僅成功取得回答時）*/
+function recordTextDiagnosis(question, answer, sources){
+  addRecord({ type:'text', question, answer, sources: sources || {} });
+}
+
+/* 進入診斷記錄頁 */
+function openDiagRecords(){ renderRecords(); go('diagrecords'); }
+
+function setRecFilter(f, btn){
+  recFilter = f;
+  document.querySelectorAll('#recFilter button').forEach(b=>b.classList.toggle('on', b===btn));
+  renderRecords();
+}
+
+function renderRecords(){
+  const all = loadRecords();
+  const rows = all.filter(r => recFilter==='all' || r.type===recFilter);
+  const list = document.getElementById('recList');
+  document.getElementById('recClear').style.display = all.length ? 'block' : 'none';
+
+  if(!rows.length){
+    const msg = all.length
+      ? '這個分類目前沒有記錄。'
+      : '尚無診斷記錄。<br>拍照診斷或使用問題查詢後，結果會自動保存在這裡。';
+    list.innerHTML = `<div class="rec-empty"><span class="em">🗂️</span>${msg}</div>`;
+    return;
+  }
+
+  list.innerHTML = rows.map((r,i)=>{
+    const idx = all.indexOf(r);
+    if(r.type==='image'){
+      const face = r.thumb
+        ? `<img class="thumb" src="${r.thumb}" alt="">`
+        : `<div class="badge">${r.healthy?'🌱':'🔬'}</div>`;
+      const title = r.healthy ? '植株健康' : '疑似' + esc(r.cond);
+      return `<div class="rec" onclick="openRecDetail(${idx})">
+        ${face}
+        <div class="rbody">
+          <div class="rtop"><b>${title}</b><span class="rtype img">拍照診斷</span></div>
+          <div class="rsub">可能性 ${r.conf}%｜${esc(r.advice)}</div>
+          <time>${esc(r.time)}</time>
+        </div></div>`;
+    }
+    return `<div class="rec" onclick="openRecDetail(${idx})">
+      <div class="badge">💬</div>
+      <div class="rbody">
+        <div class="rtop"><b>${esc(r.question)}</b><span class="rtype txt">問題查詢</span></div>
+        <div class="rsub">${esc(r.answer)}</div>
+        <time>${esc(r.time)}</time>
+      </div></div>`;
+  }).join('');
+}
+
+/* 詳情彈窗 */
+function openRecDetail(idx){
+  const r = loadRecords()[idx];
+  if(!r) return;
+  const sheet = document.getElementById('recSheet');
+  let html = `<div class="grab"></div>`;
+
+  if(r.type==='image'){
+    const title = r.healthy ? '植株健康 ✓' : '疑似' + esc(r.cond) + '（可能性 ' + r.conf + '%）';
+    html += `<h3>${title}</h3><div class="rs-time">拍照診斷 · ${esc(r.time)}</div>`;
+    if(r.thumb) html += `<img class="rs-img" src="${r.thumb}" alt="">`;
+    html += `<div class="rs-h">🌱 管理建議</div><div class="rs-body">${esc(r.advice)}</div>`;
+  }else{
+    html += `<h3>問題查詢</h3><div class="rs-time">${esc(r.time)}</div>`;
+    html += `<div class="rs-h">❓ 提問</div><div class="rs-q">${esc(r.question)}</div>`;
+    html += `<div class="rs-h">🤖 AI 回答</div><div class="rs-body">${esc(r.answer)}</div>`;
+    const s = r.sources || {};
+    const manual = (s.manual||[]).map(x=>`<span class="src-chip">${esc(x.crop)}·第${x.page}頁</span>`).join('');
+    const web = (s.web||[]).map(x=>`<a class="src-link" href="${esc(x.url)}" target="_blank" rel="noopener">${esc(x.title)}</a>`).join('');
+    if(manual) html += `<div class="rs-h">📖 手冊來源</div>${manual}`;
+    if(web) html += `<div class="rs-h">🌐 網路來源</div>${web}`;
+  }
+  sheet.innerHTML = html;
+  document.getElementById('recModal').classList.add('show');
+}
+function closeRecModal(e){
+  if(!e || e.target.id==='recModal') document.getElementById('recModal').classList.remove('show');
+}
+function clearRecords(){
+  if(!confirm('確定要清除全部診斷記錄嗎？此動作無法復原。')) return;
+  try{ localStorage.removeItem(REC_KEY); }catch(e){}
+  updateRecCount(); renderRecords();
+  toast('已清除全部記錄');
+}
+
 /* ---------- 問題查詢（症狀選單 / 知識庫）---------- */
-const HOT = [
+/* 預設熱門主題（無使用者提問紀錄時，或不足時用來補滿）*/
+const HOT_SEED = [
   {t:'葉片黃化',ic:'🌿'},{t:'白粉病',ic:'🍈'},{t:'葉片捲曲',ic:'🌱'},{t:'果實裂果',ic:'🍈'},
   {t:'生長停滯',ic:'🌱'},{t:'蟲害',ic:'🐛'},{t:'缺肥',ic:'🧪'},{t:'灌溉問題',ic:'💧'},
 ];
 const CATS = ['全部','病害','蟲害','營養','環境','管理'];
 let curCat = '全部';
 
+/* ---- 動態熱門：記錄使用者實際按「問 AI」問過的問題，最常問的浮上來 ---- */
+const HOTQ_KEY = 'hotQueries';
+function loadHotQueries(){ try{ return JSON.parse(localStorage.getItem(HOTQ_KEY)) || {}; }catch(e){ return {}; } }
+function bumpHotQuery(q){
+  q = (q||'').trim(); if(!q) return;
+  if(q.length > 60) q = q.slice(0,60);                 // 避免超長問題塞爆
+  const m = loadHotQueries();
+  m[q] = m[q] || { n:0, ts:0 };
+  m[q].n++; m[q].ts = Date.now();
+  const keys = Object.keys(m);
+  if(keys.length > 60){                                 // 上限：丟掉最久沒問的
+    keys.sort((a,b)=>m[a].ts - m[b].ts);
+    delete m[keys[0]];
+  }
+  try{ localStorage.setItem(HOTQ_KEY, JSON.stringify(m)); }catch(e){}
+}
+/* 組出要顯示的膠囊：先放使用者最常問的（依次數→最近），再用預設主題補到 8 個 */
+function hotChipsData(){
+  const m = loadHotQueries();
+  const dyn = Object.keys(m)
+    .map(q=>({ t:q, ic:'🔥', n:m[q].n, ts:m[q].ts }))
+    .sort((a,b)=> (b.n-a.n) || (b.ts-a.ts))
+    .slice(0,6);
+  const have = new Set(dyn.map(d=>d.t));
+  const seeds = HOT_SEED.filter(s=>!have.has(s.t));
+  return dyn.concat(seeds).slice(0,8);
+}
+let _hotChips = [];
+function renderHotChips(){
+  const el = document.getElementById('hotChips');
+  if(!el) return;
+  _hotChips = hotChipsData();
+  el.innerHTML = _hotChips.map((h,i)=>{
+    const label = h.t.length > 14 ? h.t.slice(0,14) + '…' : h.t;   // 長問題截斷顯示
+    return `<span class="hc" title="${esc(h.t)}" onclick="quickSearchIdx(${i})">${h.ic} ${esc(label)}</span>`;
+  }).join('');
+}
+
 function renderSearch(){
-  document.getElementById('hotChips').innerHTML =
-    HOT.map(h=>`<span class="hc" onclick="quickSearch('${h.t}')">${h.ic} ${h.t}</span>`).join('');
+  renderHotChips();
   document.getElementById('filterRow').innerHTML =
     CATS.map(c=>`<button class="f ${c===curCat?'on':''}" onclick="setCat('${c}')">${c}</button>`).join('');
   filterQA();
 }
 function setCat(c){ curCat=c; renderSearch(); }
+/* 用索引查表，避免把自由文字問題塞進 inline onclick 造成引號破損／注入 */
+function quickSearchIdx(i){ const h=_hotChips[i]; if(!h) return; document.getElementById('searchInput').value=h.t; filterQA(); }
 function quickSearch(t){ document.getElementById('searchInput').value=t; filterQA(); }
 
 function filterQA(){
@@ -206,6 +391,8 @@ async function askAI(){
   const box = document.getElementById('aiAnswer');
   if(!q){ toast('請先輸入問題'); return; }
 
+  bumpHotQuery(q); renderHotChips();          // 記錄真實提問 → 熱門搜尋動態更新
+
   box.innerHTML = `<div class="ai-card"><div class="ai-spin">
     <span class="dot"></span>AI 正在查閱手冊與網路…</div></div>`;
 
@@ -214,7 +401,11 @@ async function askAI(){
       method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({ question:q })
     });
-    const data = await res.json();
+    // 先取文字再解析：本機無後端時會落回 index.html（非 JSON），視為「服務未連線」
+    const raw = await res.text();
+    let data;
+    try{ data = JSON.parse(raw); }
+    catch(_){ throw new Error('SERVICE_OFFLINE'); }
     if(!res.ok) throw new Error(data.detail || data.error || ('HTTP '+res.status));
 
     const s = data.sources || {};
@@ -230,10 +421,16 @@ async function askAI(){
       <div class="ai-body">${esc(data.answer)}</div>
       ${srcHtml}
     </div>`;
+    recordTextDiagnosis(q, data.answer, data.sources);   // 存入診斷記錄
   }catch(err){
+    // 農民導向：不顯示技術錯誤字串，改用白話提示
+    const offline = err.message==='SERVICE_OFFLINE' || /Failed to fetch|NetworkError|Load failed/i.test(String(err.message||''));
+    const msg = offline
+      ? 'AI 問答服務目前無法連線，可能是網路不穩或服務維護中。<br><br>你可以先用下方的常見問題查詢，或稍後再試。'
+      : '這個問題暫時查不到答案，請換個說法或稍後再試；也可以用下方的常見問題查詢。';
     box.innerHTML = `<div class="ai-card">
       <div class="ai-head">🤖 AI 問答</div>
-      <div class="ai-body" style="color:var(--muted)">目前無法取得 AI 回答：${esc(String(err.message||err))}<br><br>請稍後再試，或用下方關鍵字查詢。</div>
+      <div class="ai-body" style="color:var(--muted)">${msg}</div>
     </div>`;
   }
 }
@@ -426,6 +623,7 @@ function renderWeather(w){
 
 /* ---------- 啟動 ---------- */
 document.getElementById('homeUpd').textContent = '更新時間 ' + timeStamp();
+updateRecCount();                         // 初始化「我的 → 診斷記錄」筆數
 renderSearch();
 renderChartTH();
 renderChartSoil();
