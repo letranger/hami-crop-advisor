@@ -331,9 +331,6 @@ const HOT_SEED = [
   {t:'葉片黃化',ic:'🌿'},{t:'白粉病',ic:'🍈'},{t:'葉片捲曲',ic:'🌱'},{t:'果實裂果',ic:'🍈'},
   {t:'生長停滯',ic:'🌱'},{t:'蟲害',ic:'🐛'},{t:'缺肥',ic:'🧪'},{t:'灌溉問題',ic:'💧'},
 ];
-const CATS = ['全部','病害','蟲害','營養','環境','管理'];
-let curCat = '全部';
-
 /* ---- 動態熱門：記錄使用者實際按「問 AI」問過的問題，最常問的浮上來 ---- */
 const HOTQ_KEY = 'hotQueries';
 function loadHotQueries(){ try{ return JSON.parse(localStorage.getItem(HOTQ_KEY)) || {}; }catch(e){ return {}; } }
@@ -374,41 +371,54 @@ function renderHotChips(){
 
 function renderSearch(){
   renderHotChips();
-  document.getElementById('filterRow').innerHTML =
-    CATS.map(c=>`<button class="f ${c===curCat?'on':''}" onclick="setCat('${c}')">${c}</button>`).join('');
-  filterQA();
+  renderRecentQueries();
 }
-function setCat(c){ curCat=c; renderSearch(); }
 /* 用索引查表，避免把自由文字問題塞進 inline onclick 造成引號破損／注入 */
 function quickSearchIdx(i){
   const h=_hotChips[i]; if(!h) return;
   document.getElementById('searchInput').value = h.t;
   window.scrollTo(0,0);                       // 捲回頂端，讓使用者看到搜尋框已填入
-  if(h.dyn) askAI();                          // 🔥 你問過的問題：直接重問 AI
-  else filterQA();                            // 預設關鍵字：篩選常見問題卡片
+  askAI();                                    // 點熱門膠囊 → 直接問 AI（同題命中快取秒回）
 }
-function quickSearch(t){ document.getElementById('searchInput').value=t; filterQA(); }
 
-function filterQA(){
-  const q=(document.getElementById('searchInput').value||'').trim();
-  const rows = KNOWLEDGE.filter(k=>k.id!=='healthy')
-    .filter(k=> curCat==='全部' || k.cat.includes(curCat) || (curCat==='病害'&&k.cat==='病害') || (curCat==='環境'&&/環境|灌溉/.test(k.symptom)))
-    .filter(k=> !q || (k.name+k.symptom+k.cat).includes(q));
-  const icon = c => c==='蟲害'?'🐛': c==='營養'?'🌱': c.includes('生理')?'🍈':'🌿';
+/* 最近查詢：顯示最近 5 筆問答（優先全體共享，後端無則退回本機最近提問），
+   點一下重新查看（同題命中快取、秒回不燒 API）。 */
+let _recentQ = [];
+async function renderRecentQueries(){
   const list = document.getElementById('qaList');
-  list.innerHTML = rows.length ? rows.map(k=>`
-    <div class="qa" onclick="toast('${k.name}：${k.advice}')">
-      <div class="ic">${icon(k.cat)}</div>
-      <div class="txt"><b>${qaTitle(k)}</b><span>${k.symptom}</span><span class="pill ${k.cat==='管理'?'ok':k.cat==='營養'?'mid':'warn'}" style="display:inline-block">${k.cat}</span></div>
+  if(!list) return;
+  let items = [];
+  try{
+    const r = await fetch('/api/records?limit=30');
+    if(r.ok){ const d = await r.json();
+      if(d.configured){
+        items = (d.records||[]).filter(x=>x.type==='text').slice(0,5)
+          .map(x=>({ q:x.question, count:x.count||1 }));
+      }
+    }
+  }catch(e){}
+  if(!items.length){                          // 退回本機最近提問
+    const m = loadHotQueries();
+    items = Object.keys(m).map(q=>({ q, ts:m[q].ts, count:m[q].n }))
+      .sort((a,b)=>b.ts-a.ts).slice(0,5).map(x=>({ q:x.q, count:x.count }));
+  }
+  _recentQ = items;
+  if(!items.length){
+    list.innerHTML = `<div class="card" style="text-align:center;color:var(--muted);font-size:13px">還沒有查詢紀錄。在上方輸入問題按「問 AI」，之後就會出現在這裡。</div>`;
+    return;
+  }
+  list.innerHTML = items.map((it,i)=>`
+    <div class="qa" onclick="askRecent(${i})">
+      <div class="ic">💬</div>
+      <div class="txt"><b>${esc(it.q)}</b>${it.count>1?`<span>已被問 ${it.count} 次</span>`:''}</div>
       <span class="chev">›</span>
-    </div>`).join('')
-    : `<div class="card" style="text-align:center;color:var(--muted);font-size:13px">找不到符合「${q}」的結果，換個關鍵字試試。</div>`;
+    </div>`).join('');
 }
-function qaTitle(k){
-  const map={powdery:'葉片出現白色粉狀物怎麼辦？',downy:'葉背發霉、葉面黃斑是什麼病？',
-    nitrogen:'植株長勢變弱是否缺肥？',crack:'果實表面龜裂可能原因？',
-    curl:'哈密瓜葉片捲曲要先檢查什麼？',pest:'葉面出現銀白斑點怎麼處理？'};
-  return map[k.id] || k.name;
+function askRecent(i){
+  const it=_recentQ[i]; if(!it) return;
+  document.getElementById('searchInput').value = it.q;
+  window.scrollTo(0,0);
+  askAI();
 }
 
 /* ============================================================
@@ -425,7 +435,7 @@ function onSearchFocus(){
   if(box && box.querySelector('.ai-card')){
     document.getElementById('searchInput').value = '';
     box.innerHTML = '';
-    filterQA();
+    renderRecentQueries();
   }
 }
 
@@ -469,6 +479,7 @@ async function askAI(){
       ${srcHtml}
     </div>`;
     recordTextDiagnosis(q, data.answer, data.sources);   // 本機留存（共享端後端已寫入）
+    renderRecentQueries();                                // 剛問的題目更新到「最近查詢」
   }catch(err){
     // 農民導向：不顯示技術錯誤字串，改用白話提示
     const offline = err.message==='SERVICE_OFFLINE' || /Failed to fetch|NetworkError|Load failed/i.test(String(err.message||''));
