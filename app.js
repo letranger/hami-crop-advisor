@@ -169,9 +169,11 @@ function addRecord(rec){
   saveRecords(arr);
   updateRecCount();
 }
-function updateRecCount(){
+function updateRecCount(override){
   const el = document.getElementById('recCount');
-  if(el){ const n = loadRecords().length; el.textContent = n ? '共 ' + n + ' 筆' : '尚無記錄'; }
+  if(!el) return;
+  const n = (override==null) ? loadRecords().length : override;
+  el.textContent = n ? '共 ' + n + ' 筆' : '尚無記錄';
 }
 
 /* 把照片縮成小縮圖（省儲存空間，localStorage 只約 5MB）*/
@@ -190,23 +192,38 @@ function makeThumb(dataUrl, cb){
   }catch(e){ cb(''); }
 }
 
-/* 拍照診斷 → 存記錄 */
+/* 拍照診斷 → 本機留存 + 上傳全體共享（後端未設定時自動忽略，不影響本機）*/
 function recordImageDiagnosis(imgDataUrl, r){
   const k = KNOWLEDGE.find(x=>x.id===r.id) || KNOWLEDGE[0];
   const healthy = r.id==='healthy';
   makeThumb(imgDataUrl, thumb=>{
     addRecord({ type:'image', healthy, conf:r.conf, thumb,
       cond: healthy ? '植株健康' : k.name, advice: k.advice, tags: k.tags });
+    fetch('/api/record-image', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ condId:r.id, cond: healthy?'植株健康':k.name,
+        conf:r.conf, healthy, advice:k.advice, thumb })
+    }).catch(()=>{});
   });
 }
 
-/* 問題查詢 → 存記錄（僅成功取得回答時）*/
+/* 問題查詢 → 本機留存（共享端由 /api/ask 後端於作答時直接寫入）*/
 function recordTextDiagnosis(question, answer, sources){
   addRecord({ type:'text', question, answer, sources: sources || {} });
 }
 
+/* 記錄時間字串：本機記錄有 time；後端記錄用 ts(epoch) 換算 */
+function recTimeText(r){
+  if(r.time) return r.time;
+  if(r.ts){ const d=new Date(r.ts); const p=n=>String(n).padStart(2,'0');
+    return `${p(d.getMonth()+1)}/${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`; }
+  return '';
+}
+
+let _recView = [];        // 目前畫面顯示的記錄（供 openRecDetail 依索引取用）
+
 /* 進入診斷記錄頁 */
-function openDiagRecords(){ renderRecords(); go('diagrecords'); }
+async function openDiagRecords(){ go('diagrecords'); await renderRecords(); }
 
 function setRecFilter(f, btn){
   recFilter = f;
@@ -214,61 +231,81 @@ function setRecFilter(f, btn){
   renderRecords();
 }
 
-function renderRecords(){
-  const all = loadRecords();
-  const rows = all.filter(r => recFilter==='all' || r.type===recFilter);
+async function renderRecords(){
   const list = document.getElementById('recList');
-  document.getElementById('recClear').style.display = all.length ? 'block' : 'none';
+  list.innerHTML = `<div class="rec-empty"><div class="spinner"></div></div>`;
+
+  // 先抓全體共享記錄；後端未設定/離線則退回本機 localStorage
+  let recs = null, shared = false;
+  try{
+    const res = await fetch('/api/records?limit=60');
+    if(res.ok){ const d = await res.json(); if(d.configured){ recs = d.records || []; shared = true; } }
+  }catch(e){}
+  if(!recs) recs = loadRecords();
+
+  const rows = recs.filter(r => recFilter==='all' || r.type===recFilter);
+  _recView = rows;
+  updateRecCount(shared ? recs.length : null);
+  // 共享模式不顯示「清除全部」（社群資料不該被個別使用者清空）
+  document.getElementById('recClear').style.display = (!shared && recs.length) ? 'block' : 'none';
+
+  const scope = shared
+    ? `<div class="rec-scope">🌐 全體農友的診斷記錄（共 ${recs.length} 筆）</div>`
+    : (recs.length ? `<div class="rec-scope local">📱 本機記錄（尚未連上共享）</div>` : '');
 
   if(!rows.length){
-    const msg = all.length
-      ? '這個分類目前沒有記錄。'
+    const msg = recs.length ? '這個分類目前沒有記錄。'
       : '尚無診斷記錄。<br>拍照診斷或使用問題查詢後，結果會自動保存在這裡。';
-    list.innerHTML = `<div class="rec-empty"><span class="em">🗂️</span>${msg}</div>`;
+    list.innerHTML = scope + `<div class="rec-empty"><span class="em">🗂️</span>${msg}</div>`;
     return;
   }
 
-  list.innerHTML = rows.map((r,i)=>{
-    const idx = all.indexOf(r);
+  list.innerHTML = scope + rows.map((r,i)=>{
+    const showCnt = r.count && r.count>1;
     if(r.type==='image'){
       const face = r.thumb
         ? `<img class="thumb" src="${r.thumb}" alt="">`
         : `<div class="badge">${r.healthy?'🌱':'🔬'}</div>`;
-      const title = r.healthy ? '植株健康' : '疑似' + esc(r.cond);
-      return `<div class="rec" onclick="openRecDetail(${idx})">
+      const title = r.healthy ? '植株健康' : '疑似' + esc(r.cond||'');
+      const badge = showCnt ? `<span class="rcount">社群診斷 ${r.count} 次</span>` : '';
+      return `<div class="rec" onclick="openRecDetail(${i})">
         ${face}
         <div class="rbody">
-          <div class="rtop"><b>${title}</b><span class="rtype img">拍照診斷</span></div>
-          <div class="rsub">可能性 ${r.conf}%｜${esc(r.advice)}</div>
-          <time>${esc(r.time)}</time>
+          <div class="rtop"><b>${title}</b><span class="rtype img">拍照診斷</span>${badge}</div>
+          <div class="rsub">${r.conf?`可能性 ${r.conf}%`:''}${r.advice?'｜'+esc(r.advice):''}</div>
+          <time>${esc(recTimeText(r))}</time>
         </div></div>`;
     }
-    return `<div class="rec" onclick="openRecDetail(${idx})">
+    const badge = showCnt ? `<span class="rcount">被問 ${r.count} 次</span>` : '';
+    return `<div class="rec" onclick="openRecDetail(${i})">
       <div class="badge">💬</div>
       <div class="rbody">
-        <div class="rtop"><b>${esc(r.question)}</b><span class="rtype txt">問題查詢</span></div>
-        <div class="rsub">${esc(r.answer)}</div>
-        <time>${esc(r.time)}</time>
+        <div class="rtop"><b>${esc(r.question||'')}</b><span class="rtype txt">問題查詢</span>${badge}</div>
+        <div class="rsub">${esc(r.answer||'')}</div>
+        <time>${esc(recTimeText(r))}</time>
       </div></div>`;
   }).join('');
 }
 
 /* 詳情彈窗 */
 function openRecDetail(idx){
-  const r = loadRecords()[idx];
+  const r = _recView[idx];
   if(!r) return;
   const sheet = document.getElementById('recSheet');
+  const t = recTimeText(r);
   let html = `<div class="grab"></div>`;
 
   if(r.type==='image'){
-    const title = r.healthy ? '植株健康 ✓' : '疑似' + esc(r.cond) + '（可能性 ' + r.conf + '%）';
-    html += `<h3>${title}</h3><div class="rs-time">拍照診斷 · ${esc(r.time)}</div>`;
+    const title = r.healthy ? '植株健康 ✓' : '疑似' + esc(r.cond||'') + (r.conf?'（可能性 ' + r.conf + '%）':'');
+    const cnt = r.count>1 ? ` · 社群已診斷 ${r.count} 次` : '';
+    html += `<h3>${title}</h3><div class="rs-time">拍照診斷 · ${esc(t)}${cnt}</div>`;
     if(r.thumb) html += `<img class="rs-img" src="${r.thumb}" alt="">`;
-    html += `<div class="rs-h">🌱 管理建議</div><div class="rs-body">${esc(r.advice)}</div>`;
+    if(r.advice) html += `<div class="rs-h">🌱 管理建議</div><div class="rs-body">${esc(r.advice)}</div>`;
   }else{
-    html += `<h3>問題查詢</h3><div class="rs-time">${esc(r.time)}</div>`;
-    html += `<div class="rs-h">❓ 提問</div><div class="rs-q">${esc(r.question)}</div>`;
-    html += `<div class="rs-h">🤖 AI 回答</div><div class="rs-body">${esc(r.answer)}</div>`;
+    const cnt = r.count>1 ? ` · 已被 ${r.count} 位農友問過` : '';
+    html += `<h3>問題查詢</h3><div class="rs-time">${esc(t)}${cnt}</div>`;
+    html += `<div class="rs-h">❓ 提問</div><div class="rs-q">${esc(r.question||'')}</div>`;
+    html += `<div class="rs-h">🤖 AI 回答</div><div class="rs-body">${esc(r.answer||'')}</div>`;
     const s = r.sources || {};
     const manual = (s.manual||[]).map(x=>`<span class="src-chip">${esc(x.crop)}·第${x.page}頁</span>`).join('');
     const web = (s.web||[]).map(x=>`<a class="src-link" href="${esc(x.url)}" target="_blank" rel="noopener">${esc(x.title)}</a>`).join('');
@@ -422,12 +459,16 @@ async function askAI(){
     let srcHtml = '';
     if(manual) srcHtml += `<div class="ai-src"><b>📖 手冊來源（可信）</b><br>${manual}</div>`;
     if(web) srcHtml += `<div class="ai-src"><b>🌐 網路來源（僅供參考）</b><br>${web}</div>`;
+    const cachedNote = data.cached
+      ? `<div style="font-size:12px;color:var(--green-d);background:var(--green-l);border-radius:8px;padding:6px 10px;margin-bottom:8px">💡 已有 ${data.count||'多'} 位農友問過相同問題，直接引用先前解答（未再耗用 AI）</div>`
+      : '';
     box.innerHTML = `<div class="ai-card">
       <div class="ai-head">🤖 AI 回答（依手冊＋網路）</div>
+      ${cachedNote}
       <div class="ai-body">${esc(data.answer)}</div>
       ${srcHtml}
     </div>`;
-    recordTextDiagnosis(q, data.answer, data.sources);   // 存入診斷記錄
+    recordTextDiagnosis(q, data.answer, data.sources);   // 本機留存（共享端後端已寫入）
   }catch(err){
     // 農民導向：不顯示技術錯誤字串，改用白話提示
     const offline = err.message==='SERVICE_OFFLINE' || /Failed to fetch|NetworkError|Load failed/i.test(String(err.message||''));
