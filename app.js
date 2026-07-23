@@ -317,11 +317,11 @@ function bumpHotQuery(q){
 function hotChipsData(){
   const m = loadHotQueries();
   const dyn = Object.keys(m)
-    .map(q=>({ t:q, ic:'🔥', n:m[q].n, ts:m[q].ts }))
+    .map(q=>({ t:q, ic:'🔥', n:m[q].n, ts:m[q].ts, dyn:true }))
     .sort((a,b)=> (b.n-a.n) || (b.ts-a.ts))
     .slice(0,6);
   const have = new Set(dyn.map(d=>d.t));
-  const seeds = HOT_SEED.filter(s=>!have.has(s.t));
+  const seeds = HOT_SEED.filter(s=>!have.has(s.t)).map(s=>({ ...s, dyn:false }));
   return dyn.concat(seeds).slice(0,8);
 }
 let _hotChips = [];
@@ -343,7 +343,13 @@ function renderSearch(){
 }
 function setCat(c){ curCat=c; renderSearch(); }
 /* 用索引查表，避免把自由文字問題塞進 inline onclick 造成引號破損／注入 */
-function quickSearchIdx(i){ const h=_hotChips[i]; if(!h) return; document.getElementById('searchInput').value=h.t; filterQA(); }
+function quickSearchIdx(i){
+  const h=_hotChips[i]; if(!h) return;
+  document.getElementById('searchInput').value = h.t;
+  window.scrollTo(0,0);                       // 捲回頂端，讓使用者看到搜尋框已填入
+  if(h.dyn) askAI();                          // 🔥 你問過的問題：直接重問 AI
+  else filterQA();                            // 預設關鍵字：篩選常見問題卡片
+}
 function quickSearch(t){ document.getElementById('searchInput').value=t; filterQA(); }
 
 function filterQA(){
