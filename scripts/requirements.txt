@@ -1,0 +1,4 @@
+# scripts/build_kb.py 的相依套件（只在本機建索引時需要）
+# 安裝：pip install -r scripts/requirements.txt
+pymupdf>=1.24        # 抽取 PDF 文字（import 名稱為 fitz）
+# 註：Gemini embedding 直接用 Python 內建 urllib 呼叫 REST API，不需額外套件。

@@ -12,3 +12,7 @@ node_modules/
 
 # 記錄檔
 *.log
+
+# 手冊 PDF（體積大、有版權疑慮，不進版控；重建 kb.json 時本機自備）
+docs/
+*.pdf
