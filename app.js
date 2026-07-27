@@ -50,6 +50,13 @@ function toast(msg){
   clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove('show'),2200);
 }
 
+/* 折疊式處理步驟：點「查看處理步驟」展開 / 收合底下的步驟清單 */
+function toggleSteps(btn){
+  const acc = btn.closest('.adv-acc, .warn-acc');
+  if(!acc) return;
+  acc.classList.toggle('open');
+}
+
 /* ---------- 拍照 ---------- */
 function openCamera(){ document.getElementById('camInput').click(); }
 
@@ -553,10 +560,95 @@ async function askAI(){
 }
 
 
+/* ============================================================
+   環境紀錄：今日 / 近 7 日 / 近 30 日（可點擊切換）
+   三組模擬資料，驅動感測卡、雙線趨勢圖、土壤圖、更新時間、事件時間軸。
+   ============================================================ */
+
+/* 各週期資料集（皆為示範用模擬數據） */
+const PERIOD_DATA = {
+  today: {
+    tab:'今日', upd:'05/20 08:30',
+    sensors:{ temp:['28.4','°C','ok','正常'], humi:['67','%','ok','正常'],
+              soil:['35','%','warn','偏低'], lux:['620','µmol','ok','正常'],
+              ec:['1.52','mS/cm','ok','正常'], ph:['6.2','','ok','正常'] },
+    temp:[22.6,21.9,21.5,22.2,24.1,26.8,28.4,29.1,28.6,27.4,26.0,24.6,23.4],
+    humi:[62,64,66,63,58,54,67,71,74,70,66,63,60],
+    soil:[50,48,45,43,41,39,37,45,42,39,36,33,30,28,26],
+    irrig:[7,11],
+    xlab:['00:00','04:00','08:00','12:00','16:00','20:00','24:00'],
+    hi:6, hiLabel:'08:30',
+    events:[
+      ['08:30','',    '感測正常','所有感測數值皆在正常範圍內。','ok','正常'],
+      ['11:00','warn','濕度偏高','濕度 78%，較建議範圍偏高。','warn','需注意'],
+      ['15:20','blue','已完成灌溉','自動灌溉執行完成，土壤水分回升。','blue','已完成'],
+    ],
+  },
+  week: {
+    tab:'近 7 日', upd:'05/20 08:30',
+    sensors:{ temp:['26.8','°C','ok','平均'], humi:['69','%','ok','平均'],
+              soil:['42','%','ok','平均'], lux:['585','µmol','ok','平均'],
+              ec:['1.55','mS/cm','ok','平均'], ph:['6.1','','ok','平均'] },
+    temp:[25.2,26.1,27.4,26.0,25.9,27.8,26.8],
+    humi:[70,68,66,74,73,64,69],
+    soil:[40,44,33,46,41,32,42],
+    irrig:[2,5],
+    xlab:['05/14','05/15','05/16','05/17','05/18','05/19','05/20'],
+    hi:6, hiLabel:'05/20',
+    events:[
+      ['05/16','warn','高溫預警','午後棚內達 33°C，已加強遮陰與通風。','warn','需注意'],
+      ['05/18','blue','完成追肥','依 EC 值調整營養液，數值回穩。','blue','已完成'],
+      ['05/20','',    '一週穩定','近 7 日多數數值落在正常範圍。','ok','正常'],
+    ],
+  },
+  month: {
+    tab:'近 30 日', upd:'05/20 08:30',
+    sensors:{ temp:['27.5','°C','ok','平均'], humi:['71','%','warn','偏高'],
+              soil:['44','%','ok','平均'], lux:['560','µmol','ok','平均'],
+              ec:['1.58','mS/cm','ok','平均'], ph:['6.0','','ok','平均'] },
+    // 30 天：以正弦波 + 固定偏移生成，看起來自然又不隨機
+    temp:Array.from({length:30},(_,i)=>+(26.5+2.8*Math.sin(i/3.2)+((i*7)%5)*0.25).toFixed(1)),
+    humi:Array.from({length:30},(_,i)=>Math.round(70+9*Math.sin(i/2.6+1)+((i*3)%4))),
+    soil:Array.from({length:30},(_,i)=>Math.round(42+8*Math.sin(i/2.2)+((i*5)%6)-2)),
+    irrig:[6,13,20,27],
+    xlab:['04/20','04/25','04/30','05/05','05/10','05/15','05/20'],
+    hi:29, hiLabel:'05/20',
+    events:[
+      ['05/02','warn','連日高濕','梅雨前期濕度偏高，加強巡檢葉背防露菌病。','warn','需注意'],
+      ['05/11','blue','完成換液','營養液全面更換，EC / pH 校正完成。','blue','已完成'],
+      ['05/20','',    '整體良好','近 30 日生育狀況穩定，環境控制達標。','ok','正常'],
+    ],
+  },
+};
+
+let recPeriod = 'today';
+
+/* 感測卡 */
+function renderSensors(p){
+  const icon={temp:'🌡️',humi:'💧',soil:'🌱',lux:'☀️',ec:'⚡',ph:'🧪'};
+  const name={temp:'溫度',humi:'濕度',soil:'土壤水分',lux:'光照',ec:'EC 值',ph:'pH 值'};
+  const order=['temp','humi','soil','lux','ec','ph'];
+  document.getElementById('recSensors').innerHTML = order.map(k=>{
+    const [val,unit,pill,pillTxt]=p.sensors[k];
+    const u = unit ? `<small> ${unit}</small>` : '';
+    return `<div class="sensor"><div class="ic">${icon[k]}</div><div class="name">${name[k]}</div>`
+         + `<div class="val">${val}${u}</div><span class="pill ${pill}">${pillTxt}</span></div>`;
+  }).join('');
+}
+
+/* 事件時間軸 */
+function renderTimeline(p){
+  document.getElementById('recTimeline').innerHTML = p.events.map(e=>{
+    const [t,dot,title,desc,pill,pillTxt]=e;
+    return `<div class="ev"><time>${t}</time><span class="d ${dot}"></span>`
+         + `<div class="body"><b>${title}</b><span>${desc}</span></div>`
+         + `<span class="pill ${pill}">${pillTxt}</span></div>`;
+  }).join('');
+}
+
 /* ---------- 溫度 / 濕度雙線趨勢圖（SVG）---------- */
-function renderChartTH(){
-  const temp=[22.6,21.9,21.5,22.2,24.1,26.8,28.4,29.1,28.6,27.4,26.0,24.6,23.4];
-  const humi=[62,64,66,63,58,54,67,71,74,70,66,63,60];
+function renderChartTH(p){
+  const temp=p.temp, humi=p.humi;
   const w=440,h=150,padL=30,padR=30,padT=10,padB=22, n=temp.length;
   const tMin=15,tMax=35, hMin=0,hMax=100;
   const x=i=>padL + i*(w-padL-padR)/(n-1);
@@ -569,10 +661,10 @@ function renderChartTH(){
       <text x="4" y="${yy+3}" font-size="8" fill="#9caaa1">${t}°C</text>`;
   }).join('');
   const rAxis=[0,25,50,75,100].map(hv=>`<text x="${w-padR+3}" y="${yH(hv)+3}" font-size="8" fill="#9caaa1">${hv}%</text>`).join('');
-  const xlab=['00:00','04:00','08:00','12:00','16:00','20:00','24:00'];
-  const xax=xlab.map((l,i)=>`<text x="${padL + i*(w-padL-padR)/6}" y="${h-6}" font-size="8" fill="#9caaa1" text-anchor="middle">${l}</text>`).join('');
-  // 高亮 08:30（index 6 附近）
-  const hi=6;
+  const xax=p.xlab.map((l,i)=>`<text x="${padL + i*(w-padL-padR)/(p.xlab.length-1)}" y="${h-6}" font-size="8" fill="#9caaa1" text-anchor="middle">${l}</text>`).join('');
+  const hi=p.hi;
+  // 提示框靠右時往左收，避免超出畫布
+  const tipX = Math.min(Math.max(x(hi)-24, padL), w-padR-66);
   document.getElementById('chartTH').innerHTML=`
     <svg viewBox="0 0 ${w} ${h}">
       ${grid}${rAxis}
@@ -581,9 +673,9 @@ function renderChartTH(){
       <path d="${path(temp,yT)}" fill="none" stroke="#2f9e5a" stroke-width="2.4" stroke-linejoin="round"/>
       <circle cx="${x(hi)}" cy="${yT(temp[hi])}" r="3.5" fill="#2f9e5a" stroke="#fff" stroke-width="1.5"/>
       <circle cx="${x(hi)}" cy="${yH(humi[hi])}" r="3.5" fill="#3b82c4" stroke="#fff" stroke-width="1.5"/>
-      <g transform="translate(${x(hi)-24},${padT-2})">
+      <g transform="translate(${tipX},${padT-2})">
         <rect x="0" y="0" width="66" height="34" rx="7" fill="#fff" stroke="#e5ece6"/>
-        <text x="8" y="14" font-size="8.5" fill="#7c8b81">08:30</text>
+        <text x="8" y="14" font-size="8.5" fill="#7c8b81">${p.hiLabel}</text>
         <text x="8" y="25" font-size="9" font-weight="800" fill="#2f9e5a">🟢 ${temp[hi]}°C</text>
         <text x="40" y="25" font-size="9" font-weight="800" fill="#3b82c4">🔵 ${humi[hi]}%</text>
       </g>
@@ -592,8 +684,8 @@ function renderChartTH(){
 }
 
 /* ---------- 土壤水分趨勢（面積圖 + 灌溉標記）---------- */
-function renderChartSoil(){
-  const data=[50,48,45,43,41,39,37,45,42,39,36,33,30,28,26];  // %，中間灌溉後回升
+function renderChartSoil(p){
+  const data=p.soil;
   const w=440,h=140,padL=30,padR=12,padT=10,padB=22, n=data.length;
   const min=0,max=60;
   const x=i=>padL + i*(w-padL-padR)/(n-1);
@@ -603,9 +695,8 @@ function renderChartSoil(){
   const grid=[0,20,40,60].map(g=>{const yy=y(g);
     return `<line x1="${padL}" y1="${yy}" x2="${w-padR}" y2="${yy}" stroke="#eef3ee"/>
       <text x="4" y="${yy+3}" font-size="8" fill="#9caaa1">${g}%</text>`;}).join('');
-  const irrig=[7,11].map(i=>`<line x1="${x(i)}" y1="${padT}" x2="${x(i)}" y2="${h-padB}" stroke="#3b82c4" stroke-width="1.2" stroke-dasharray="3 3"/>`).join('');
-  const xlab=['00:00','04:00','08:00','12:00','16:00','20:00','24:00'];
-  const xax=xlab.map((l,i)=>`<text x="${padL + i*(w-padL-padR)/6}" y="${h-6}" font-size="8" fill="#9caaa1" text-anchor="middle">${l}</text>`).join('');
+  const irrig=(p.irrig||[]).map(i=>`<line x1="${x(i)}" y1="${padT}" x2="${x(i)}" y2="${h-padB}" stroke="#3b82c4" stroke-width="1.2" stroke-dasharray="3 3"/>`).join('');
+  const xax=p.xlab.map((l,i)=>`<text x="${padL + i*(w-padL-padR)/(p.xlab.length-1)}" y="${h-6}" font-size="8" fill="#9caaa1" text-anchor="middle">${l}</text>`).join('');
   document.getElementById('chartSoil').innerHTML=`
     <svg viewBox="0 0 ${w} ${h}">
       <defs><linearGradient id="gs" x1="0" y1="0" x2="0" y2="1">
@@ -615,6 +706,26 @@ function renderChartSoil(){
       <path d="${line}" fill="none" stroke="#3f9a52" stroke-width="2.4" stroke-linejoin="round"/>
       ${xax}
     </svg>`;
+}
+
+/* 依週期重繪整個環境紀錄頁 */
+function renderEnv(){
+  const p = PERIOD_DATA[recPeriod];
+  document.getElementById('recUpd').textContent = '更新時間 ' + p.upd + ' ↻';
+  document.getElementById('chartTHsel').textContent   = p.tab + ' ▾';
+  document.getElementById('chartSoilSel').textContent = p.tab + ' ▾';
+  renderSensors(p);
+  renderChartTH(p);
+  renderChartSoil(p);
+  renderTimeline(p);
+}
+
+/* 點擊分頁切換週期 */
+function switchPeriod(key, btn){
+  recPeriod = key;
+  document.querySelectorAll('#recSeg button').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  renderEnv();
 }
 
 /* ============================================================
@@ -742,7 +853,6 @@ function renderWeather(w){
 document.getElementById('homeUpd').textContent = '更新時間 ' + timeStamp();
 updateRecCount();                         // 初始化「我的 → 診斷記錄」筆數
 renderSearch();
-renderChartTH();
-renderChartSoil();
+renderEnv();
 initLocationWeather();                    // 進入即嘗試定位 + 取天氣（使用者會看到授權提示）
 if('serviceWorker' in navigator){ navigator.serviceWorker.register('sw.js').catch(()=>{}); }

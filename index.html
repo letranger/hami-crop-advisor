@@ -248,13 +248,32 @@ main{padding:0 16px 96px}
 .adv-item .txt b{font-size:14px;display:block}
 .adv-item .txt span{font-size:11.5px;color:var(--muted);display:block;margin-top:3px}
 .adv-item .go{font-size:12px;font-weight:700;color:var(--green-d);border:1px solid #cfe6d6;background:#fff;
-  padding:8px 11px;border-radius:11px;white-space:nowrap;cursor:pointer;font-family:inherit;flex:none}
+  padding:8px 11px;border-radius:11px;white-space:nowrap;cursor:pointer;font-family:inherit;flex:none;
+  display:inline-flex;align-items:center;gap:5px}
+.adv-item .go .caret{font-size:9px;transition:transform .22s ease}
+/* 折疊式處理步驟 */
+.adv-acc{margin-bottom:11px}
+.adv-acc .adv-item{margin-bottom:0}
+.adv-acc.open .adv-item{border-bottom-left-radius:0;border-bottom-right-radius:0}
+.adv-acc.open .go{background:var(--green);color:#fff;border-color:var(--green)}
+.adv-acc.open .go .caret{transform:rotate(180deg)}
+.adv-body{background:var(--card);border-radius:0 0 16px 16px;box-shadow:0 2px 12px rgba(28,43,34,.05);
+  max-height:0;overflow:hidden;transition:max-height .28s ease}
+.adv-acc.open .adv-body{max-height:460px}
+.adv-body .inner{padding:12px 16px 14px;border-top:1px dashed var(--line)}
+.adv-body .st{display:flex;gap:10px;padding:5px 0;font-size:13px;color:#405146;line-height:1.55}
+.adv-body .st .n{flex:none;width:20px;height:20px;border-radius:50%;background:var(--green-l);color:var(--green-d);
+  font-size:11px;font-weight:800;display:grid;place-items:center;margin-top:1px}
 .warn-item{background:var(--card);border-radius:16px;padding:14px;display:flex;gap:12px;box-shadow:0 2px 12px rgba(28,43,34,.05);margin-bottom:11px}
 .warn-item .ic{font-size:24px;flex:none}
 .warn-item .txt{flex:1}
 .warn-item .txt b{font-size:14px;display:block}
 .warn-item .txt span{font-size:11.5px;color:var(--muted);display:block;margin-top:3px}
 .warn-item .acts{display:flex;flex-direction:column;gap:6px;flex:none}
+.warn-acc{margin-bottom:11px}
+.warn-acc .warn-item{margin-bottom:0}
+.warn-acc.open .warn-item{border-bottom-left-radius:0;border-bottom-right-radius:0}
+.warn-acc.open .acts .fill{filter:brightness(.92)}
 .warn-item .acts button{font-family:inherit;font-size:11.5px;font-weight:700;border-radius:10px;padding:7px 10px;cursor:pointer;white-space:nowrap;border:1px solid transparent}
 .warn-item .acts .fill{background:var(--warn);color:#fff}
 .warn-item .acts .out{background:#fff;color:var(--green-d);border-color:#cfe6d6}
@@ -574,40 +593,29 @@ nav .tab .ic{font-size:26px}
       <div class="page-title"><h1>環境紀錄</h1></div>
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
         <span class="chip-row">📍 A 區 · 03 號棚</span>
-        <span class="upd">更新時間 05/20 08:30 ↻</span>
+        <span class="upd" id="recUpd">更新時間 05/20 08:30 ↻</span>
       </div>
-      <div class="segment">
-        <button class="on">今日</button><button>近 7 日</button><button>近 30 日</button>
+      <div class="segment" id="recSeg">
+        <button class="on" onclick="switchPeriod('today',this)">今日</button><button onclick="switchPeriod('week',this)">近 7 日</button><button onclick="switchPeriod('month',this)">近 30 日</button>
       </div>
 
-      <div class="sensors3">
-        <div class="sensor"><div class="ic">🌡️</div><div class="name">溫度</div><div class="val">28.4<small> °C</small></div><span class="pill ok">正常</span></div>
-        <div class="sensor"><div class="ic">💧</div><div class="name">濕度</div><div class="val">67<small> %</small></div><span class="pill ok">正常</span></div>
-        <div class="sensor"><div class="ic">🌱</div><div class="name">土壤水分</div><div class="val">35<small> %</small></div><span class="pill warn">偏低</span></div>
-        <div class="sensor"><div class="ic">☀️</div><div class="name">光照</div><div class="val">620<small> µmol</small></div><span class="pill ok">正常</span></div>
-        <div class="sensor"><div class="ic">⚡</div><div class="name">EC 值</div><div class="val">1.52<small> mS/cm</small></div><span class="pill ok">正常</span></div>
-        <div class="sensor"><div class="ic">🧪</div><div class="name">pH 值</div><div class="val">6.2</div><span class="pill ok">正常</span></div>
-      </div>
+      <div class="sensors3" id="recSensors"></div>
 
       <div class="card chart-card">
-        <div class="ch-head"><b>溫度 / 濕度趨勢</b><span class="mini-sel">今日 ▾</span></div>
+        <div class="ch-head"><b>溫度 / 濕度趨勢</b><span class="mini-sel" id="chartTHsel">今日 ▾</span></div>
         <div class="legend"><span><i style="background:#2f9e5a"></i>溫度 (°C)</span><span><i style="background:#3b82c4"></i>濕度 (%)</span></div>
         <div id="chartTH"></div>
       </div>
 
       <div class="card chart-card">
-        <div class="ch-head"><b>土壤水分趨勢</b><span class="mini-sel">今日 ▾</span></div>
-        <div class="legend"><span><i style="background:#4a9d55"></i>土壤水分 (%)</span><span><i style="background:#3b82c4;height:0;border-top:2px dashed #3b82c4"></i>灌溉時間</span></div>
+        <div class="ch-head"><b>土壤水分趨勢</b><span class="mini-sel" id="chartSoilSel">今日 ▾</span></div>
+        <div class="legend" id="soilLegend"><span><i style="background:#4a9d55"></i>土壤水分 (%)</span><span><i style="background:#3b82c4;height:0;border-top:2px dashed #3b82c4"></i>灌溉時間</span></div>
         <div id="chartSoil"></div>
       </div>
 
       <div class="card">
         <div class="ch-head" style="margin-bottom:6px"><b>環境事件紀錄</b><span class="mini-sel" style="border:none">查看全部 ›</span></div>
-        <div class="timeline">
-          <div class="ev"><time>08:30</time><span class="d"></span><div class="body"><b>感測正常</b><span>所有感測數值皆在正常範圍內。</span></div><span class="pill ok">正常</span></div>
-          <div class="ev"><time>11:00</time><span class="d warn"></span><div class="body"><b>濕度偏高</b><span>濕度 78%，較建議範圍偏高。</span></div><span class="pill warn">需注意</span></div>
-          <div class="ev"><time>15:20</time><span class="d blue"></span><div class="body"><b>已完成灌溉</b><span>自動灌溉執行完成，土壤水分回升。</span></div><span class="pill blue">已完成</span></div>
-        </div>
+        <div class="timeline" id="recTimeline"></div>
       </div>
     </section>
 
@@ -624,21 +632,73 @@ nav .tab .ic{font-size:26px}
       </div>
 
       <div class="sec-title">栽培建議事項</div>
-      <div class="adv-item"><div class="ic ic-blue">💧</div><div class="txt"><b>灌溉建議：維持土壤水分穩定</b><span>保持土壤濕度於 60–70% 之間</span></div><button class="go" onclick="toast('灌溉處理步驟：早晚各檢查一次滴灌…')">查看處理步驟</button></div>
-      <div class="adv-item"><div class="ic ic-green">🌿</div><div class="txt"><b>施肥提醒：依生育階段補充養分</b><span>建議補充鉀肥，促進果實糖度提升</span></div><button class="go" onclick="toast('施肥處理步驟：追施高鉀水溶肥…')">查看處理步驟</button></div>
-      <div class="adv-item"><div class="ic ic-mint">🛡️</div><div class="txt"><b>病害預防：加強通風與巡檢</b><span>注意白粉病、露菌病等病害</span></div><button class="go" onclick="toast('病害預防步驟：每日巡檢葉背、維持通風…')">查看處理步驟</button></div>
-      <div class="adv-item"><div class="ic ic-amber">🍈</div><div class="txt"><b>採收預估：18 天後</b><span>預估採收期 05/20（依氣候調整）</span></div><button class="go" onclick="toast('採收前準備：停水控制、監測糖度…')">查看處理步驟</button></div>
+
+      <div class="adv-acc">
+        <div class="adv-item"><div class="ic ic-blue">💧</div><div class="txt"><b>灌溉建議：維持土壤水分穩定</b><span>保持土壤濕度於 60–70% 之間</span></div><button class="go" onclick="toggleSteps(this)">查看處理步驟<i class="caret">▾</i></button></div>
+        <div class="adv-body"><div class="inner">
+          <div class="st"><span class="n">1</span><span>早晚各檢查一次滴灌系統，確認出水均勻、管線無阻塞。</span></div>
+          <div class="st"><span class="n">2</span><span>土壤濕度低於 60% 時補灌，避免忽乾忽濕影響果實發育。</span></div>
+          <div class="st"><span class="n">3</span><span>高溫時段（11–15 時）避免大量灌溉，防止根部悶熱。</span></div>
+          <div class="st"><span class="n">4</span><span>每日記錄灌溉量，對照「紀錄」頁土壤水分趨勢調整。</span></div>
+        </div></div>
+      </div>
+
+      <div class="adv-acc">
+        <div class="adv-item"><div class="ic ic-green">🌿</div><div class="txt"><b>施肥提醒：依生育階段補充養分</b><span>建議補充鉀肥，促進果實糖度提升</span></div><button class="go" onclick="toggleSteps(this)">查看處理步驟<i class="caret">▾</i></button></div>
+        <div class="adv-body"><div class="inner">
+          <div class="st"><span class="n">1</span><span>結果期以高鉀水溶肥為主，促進糖分累積。</span></div>
+          <div class="st"><span class="n">2</span><span>少量多次、隨滴灌供給，避免單次施用過量。</span></div>
+          <div class="st"><span class="n">3</span><span>每週檢測 EC 值，控制在 1.5–2.0 mS/cm。</span></div>
+          <div class="st"><span class="n">4</span><span>觀察葉色與果實膨大狀況，適度調整氮鉀比例。</span></div>
+        </div></div>
+      </div>
+
+      <div class="adv-acc">
+        <div class="adv-item"><div class="ic ic-mint">🛡️</div><div class="txt"><b>病害預防：加強通風與巡檢</b><span>注意白粉病、露菌病等病害</span></div><button class="go" onclick="toggleSteps(this)">查看處理步驟<i class="caret">▾</i></button></div>
+        <div class="adv-body"><div class="inner">
+          <div class="st"><span class="n">1</span><span>每日巡檢葉片正反面，留意白色粉狀或水浸狀病斑。</span></div>
+          <div class="st"><span class="n">2</span><span>白天開側窗或啟動循環風扇，降低棚內濕度。</span></div>
+          <div class="st"><span class="n">3</span><span>濕度持續高於 80% 時，發病初期輪替施用合格防治資材。</span></div>
+          <div class="st"><span class="n">4</span><span>摘除病葉並帶離溫室銷毀，避免病原擴散。</span></div>
+        </div></div>
+      </div>
+
+      <div class="adv-acc">
+        <div class="adv-item"><div class="ic ic-amber">🍈</div><div class="txt"><b>採收預估：18 天後</b><span>預估採收期 05/20（依氣候調整）</span></div><button class="go" onclick="toggleSteps(this)">查看處理步驟<i class="caret">▾</i></button></div>
+        <div class="adv-body"><div class="inner">
+          <div class="st"><span class="n">1</span><span>採收前 5–7 天逐步控水，提升甜度與耐儲性。</span></div>
+          <div class="st"><span class="n">2</span><span>每 2–3 天監測糖度（Brix），達標即安排採收。</span></div>
+          <div class="st"><span class="n">3</span><span>觀察果皮網紋與果柄離層，判斷成熟度。</span></div>
+          <div class="st"><span class="n">4</span><span>選擇清晨低溫時段採收，減少果實日曬損耗。</span></div>
+        </div></div>
+      </div>
 
       <div class="sec-title">異常預警 <span class="more">查看全部 ›</span></div>
-      <div class="warn-item">
-        <span class="ic">⚠️</span>
-        <div class="txt"><b>濕度偏高，白粉病風險上升</b><span>目前濕度 82%，建議加強通風與巡檢</span></div>
-        <div class="acts"><button class="fill" onclick="toast('已開啟白粉病防治步驟')">查看處理步驟</button><button class="out" onclick="toast('已加入待辦清單 ✓')">加入待辦</button></div>
+      <div class="warn-acc">
+        <div class="warn-item">
+          <span class="ic">⚠️</span>
+          <div class="txt"><b>濕度偏高，白粉病風險上升</b><span>目前濕度 82%，建議加強通風與巡檢</span></div>
+          <div class="acts"><button class="fill" onclick="toggleSteps(this)">查看處理步驟</button><button class="out" onclick="toast('已加入待辦清單 ✓')">加入待辦</button></div>
+        </div>
+        <div class="adv-body"><div class="inner">
+          <div class="st"><span class="n">1</span><span>立即開啟側窗與循環風扇，降低棚內相對濕度。</span></div>
+          <div class="st"><span class="n">2</span><span>巡檢葉片正反面，發現白色粉狀斑立即摘除病葉。</span></div>
+          <div class="st"><span class="n">3</span><span>發病初期輪替施用合格防治資材，避免產生抗藥性。</span></div>
+          <div class="st"><span class="n">4</span><span>持續監測濕度，設法維持於 70% 以下。</span></div>
+        </div></div>
       </div>
-      <div class="warn-item">
-        <span class="ic">🟠</span>
-        <div class="txt"><b>土壤水分偏低，建議檢查灌溉</b><span>目前土壤水分 28%，低於建議值</span></div>
-        <div class="acts"><button class="fill" onclick="toast('已開啟灌溉檢查步驟')">查看處理步驟</button><button class="out" onclick="toast('已加入待辦清單 ✓')">加入待辦</button></div>
+      <div class="warn-acc">
+        <div class="warn-item">
+          <span class="ic">🟠</span>
+          <div class="txt"><b>土壤水分偏低，建議檢查灌溉</b><span>目前土壤水分 28%，低於建議值</span></div>
+          <div class="acts"><button class="fill" onclick="toggleSteps(this)">查看處理步驟</button><button class="out" onclick="toast('已加入待辦清單 ✓')">加入待辦</button></div>
+        </div>
+        <div class="adv-body"><div class="inner">
+          <div class="st"><span class="n">1</span><span>檢查滴灌管線是否阻塞、電磁閥是否正常運作。</span></div>
+          <div class="st"><span class="n">2</span><span>手動補灌至土壤濕度回到 60% 以上。</span></div>
+          <div class="st"><span class="n">3</span><span>確認灌溉排程與定時器設定無誤。</span></div>
+          <div class="st"><span class="n">4</span><span>補灌後 30 分鐘複查土壤水分是否回升。</span></div>
+        </div></div>
       </div>
     </section>
 
