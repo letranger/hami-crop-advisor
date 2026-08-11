@@ -69,6 +69,55 @@ function onPhoto(e){
   e.target.value='';
 }
 
+/* ---------- 非植物照片過濾 ----------
+   把照片縮到 64×64，統計「植物色系」像素（黃綠～綠色調、具一定飽和度）
+   的佔比：健康葉、黃化葉、哈密瓜果皮都落在這個色域，人像 / 室內 / 文件
+   類照片佔比極低。純前端色彩啟發式 — 零 API 成本、離線可用，只擋
+   「明顯非植物」，寧可放行也不誤擋。 */
+const PLANT_MIN_RATIO = 0.16;   // 植物色像素佔比低於此值 → 視為非植物照片
+
+function plantLikelihood(imgDataUrl){
+  return new Promise((resolve)=>{
+    const img=new Image();
+    img.onload=()=>{
+      try{
+        const S=64;
+        const c=document.createElement('canvas'); c.width=S; c.height=S;
+        const ctx=c.getContext('2d',{willReadFrequently:true});
+        ctx.drawImage(img,0,0,S,S);
+        const d=ctx.getImageData(0,0,S,S).data;
+        let veg=0, valid=0;
+        for(let i=0;i<d.length;i+=4){
+          const r=d[i], g=d[i+1], b=d[i+2];
+          const max=Math.max(r,g,b), min=Math.min(r,g,b), diff=max-min;
+          if(max<30) continue;                 // 過暗像素不列入統計
+          valid++;
+          if(diff/max<0.15) continue;          // 灰白低飽和（含白粉層）不計為植物色
+          let hue;
+          if(max===r)      hue=60*(((g-b)/diff+6)%6);
+          else if(max===g) hue=60*((b-r)/diff+2);
+          else             hue=60*((r-g)/diff+4);
+          if(hue>=40&&hue<=170) veg++;         // 黃綠(40°)～綠(170°)：葉、黃化葉、瓜果皮
+        }
+        resolve(valid ? veg/valid : 0);
+      }catch(e){ resolve(1); }                 // 讀取失敗一律放行，避免誤擋
+    };
+    img.onerror=()=>resolve(1);
+    img.src=imgDataUrl;
+  });
+}
+
+function renderNotPlant(card){
+  card.innerHTML = `
+    <div class="diag-head"><b>🌿 AI 初步判斷</b><time>分析時間 ${timeStamp()} ↻</time></div>
+    <div class="advice-box">
+      <div class="h">📷 請上傳植物照片</div>
+      <p>這張照片看起來不是植物。請將鏡頭對準要診斷的<b>葉片或果實</b>，靠近、對焦後再拍一次。</p>
+    </div>
+    <button class="ai-ask-btn" onclick="openCamera()">📷 重新拍照</button>`;
+  toast('請上傳植物照片 📷');
+}
+
 /* ---------- 診斷流程 ---------- */
 async function runDiagnosis(imgDataUrl){
   go('diag');
@@ -78,6 +127,12 @@ async function runDiagnosis(imgDataUrl){
   const card=document.getElementById('diagCard');
   card.innerHTML = `<div class="spinner"></div>
     <p style="text-align:center;color:var(--muted);font-size:13px;margin:0">AI 分析中，請稍候…</p>`;
+
+  // 先過濾明顯非植物的照片：不送 AI 判讀、也不列入診斷記錄
+  if(await plantLikelihood(imgDataUrl) < PLANT_MIN_RATIO){
+    renderNotPlant(card);
+    return;
+  }
 
   const result = await diagnose(imgDataUrl);
   renderResult(card, result);
