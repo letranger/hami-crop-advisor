@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f8a5f">
+<link rel="icon" href="icons/icon-192.png">
+<title>溫室植栽專家系統 使用手冊（大字版）</title>
+</head>
+<body>
+<style>
+:root{
+  --leaf:#0f8a5f;
+  --deep:#134e33;
+  --ground:#f3f7f3;
+  --card:#ffffff;
+  --ink:#1d2b22;
+  --soft:#51655a;
+  --line:#dbe7dd;
+  --amber:#a35d0a;
+  --amber-bg:#fdf3e2;
+  --chip:#e6f4ec;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --leaf:#3dbc8a;
+    --deep:#a8dfc4;
+    --ground:#111b15;
+    --card:#1a2820;
+    --ink:#e7f0e9;
+    --soft:#a4b8ab;
+    --line:#2c4033;
+    --amber:#f0b35e;
+    --amber-bg:#33270f;
+    --chip:#1f3a2c;
+  }
+}
+:root[data-theme="dark"]{
+  --leaf:#3dbc8a; --deep:#a8dfc4; --ground:#111b15; --card:#1a2820;
+  --ink:#e7f0e9; --soft:#a4b8ab; --line:#2c4033;
+  --amber:#f0b35e; --amber-bg:#33270f; --chip:#1f3a2c;
+}
+:root[data-theme="light"]{
+  --leaf:#0f8a5f; --deep:#134e33; --ground:#f3f7f3; --card:#ffffff;
+  --ink:#1d2b22; --soft:#51655a; --line:#dbe7dd;
+  --amber:#a35d0a; --amber-bg:#fdf3e2; --chip:#e6f4ec;
+}
+
+*{box-sizing:border-box}
+body{
+  margin:0;
+  background:var(--ground);
+  color:var(--ink);
+  font-family:-apple-system,"PingFang TC","Noto Sans TC","Microsoft JhengHei",system-ui,sans-serif;
+  font-size:20px;
+  line-height:1.85;
+}
+.wrap{max-width:740px;margin:0 auto;padding:28px 20px 60px}
+
+/* ---------- 封面 ---------- */
+header.cover{
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:22px;
+  padding:36px 30px 30px;
+  text-align:center;
+  margin-bottom:26px;
+}
+.cover .melon{font-size:64px;line-height:1}
+.cover h1{
+  font-size:38px;font-weight:900;color:var(--deep);
+  margin:14px 0 4px;letter-spacing:2px;text-wrap:balance;
+}
+.cover .sub{
+  font-size:22px;font-weight:800;color:var(--leaf);margin:0 0 14px;
+}
+.cover .meta{font-size:16px;color:var(--soft);margin:0}
+.freebadge{
+  display:inline-block;margin-top:16px;
+  background:var(--chip);color:var(--deep);
+  font-size:18px;font-weight:800;
+  padding:6px 20px;border-radius:999px;
+}
+
+/* ---------- 章節 ---------- */
+section.ch{
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:22px;
+  padding:26px 26px 22px;
+  margin-bottom:26px;
+}
+.ch-head{display:flex;align-items:center;gap:14px;margin-bottom:6px}
+.ch-num{
+  flex:none;width:52px;height:52px;border-radius:16px;
+  background:var(--leaf);color:#fff;
+  display:grid;place-items:center;
+  font-size:26px;font-weight:900;
+}
+.ch-head h2{
+  font-size:28px;font-weight:900;color:var(--deep);
+  margin:0;letter-spacing:1px;text-wrap:balance;
+}
+.ch-lead{font-size:19px;color:var(--soft);margin:4px 0 18px}
+
+/* ---------- 步驟 ---------- */
+.steps{display:flex;flex-direction:column;gap:16px;margin-top:6px}
+.step{display:flex;gap:16px;align-items:flex-start}
+.step .n{
+  flex:none;width:44px;height:44px;border-radius:50%;
+  border:3px solid var(--leaf);color:var(--leaf);
+  display:grid;place-items:center;
+  font-size:22px;font-weight:900;margin-top:2px;
+}
+.step .t{flex:1}
+.step .t b{font-size:21px;color:var(--ink)}
+.step .t p{margin:4px 0 0;font-size:19px;color:var(--soft)}
+
+/* ---------- 畫面模擬 ---------- */
+.ui{
+  margin:10px 0 2px;
+  border:2px dashed var(--line);
+  border-radius:16px;
+  padding:12px 14px;
+  background:var(--ground);
+}
+.ui .cap{font-size:15px;font-weight:800;color:var(--soft);margin:0 0 8px;letter-spacing:1px}
+.btn-green{
+  background:linear-gradient(120deg,#0c6b49,#22a06b);color:#fff;
+  border-radius:16px;padding:14px 18px;
+  display:flex;align-items:center;gap:12px;
+  font-size:20px;font-weight:800;
+}
+.btn-green small{display:block;font-size:14px;font-weight:600;opacity:.9}
+.btn-light{
+  background:var(--chip);color:var(--deep);
+  border:1px solid var(--line);
+  border-radius:16px;padding:14px 18px;
+  display:flex;align-items:center;gap:12px;
+  font-size:20px;font-weight:800;
+}
+.btn-pill{
+  background:var(--leaf);color:#fff;text-align:center;
+  border-radius:999px;padding:12px 18px;
+  font-size:19px;font-weight:800;
+}
+.tabbar{
+  display:flex;background:var(--card);
+  border:1px solid var(--line);border-radius:16px;overflow:hidden;
+}
+.tabbar span{
+  flex:1;text-align:center;padding:10px 2px 8px;
+  font-size:14px;font-weight:700;color:var(--soft);
+}
+.tabbar span i{display:block;font-style:normal;font-size:22px}
+.tabbar span.on{color:var(--leaf);font-weight:900}
+
+/* ---------- 提示框 ---------- */
+.tipbox{
+  background:var(--amber-bg);
+  border-radius:16px;
+  padding:16px 18px;
+  margin-top:18px;
+}
+.tipbox b{color:var(--amber);font-size:20px}
+.tipbox ul{margin:8px 0 0;padding-left:26px}
+.tipbox li{margin:6px 0;font-size:19px}
+
+/* ---------- QR 區 ---------- */
+.qr-zone{
+  display:flex;gap:24px;align-items:center;flex-wrap:wrap;
+  background:var(--chip);border-radius:18px;padding:20px;margin:6px 0 18px;
+}
+.qr-zone img{
+  width:180px;height:180px;flex:none;
+  background:#fff;border-radius:14px;padding:10px;max-width:100%;
+}
+.qr-zone .txt{flex:1;min-width:220px}
+.qr-zone .txt b{font-size:22px;color:var(--deep)}
+.qr-zone .url{
+  display:inline-block;margin-top:8px;
+  font-size:19px;font-weight:800;color:var(--deep);
+  background:var(--card);border:1px solid var(--line);
+  border-radius:10px;padding:6px 14px;
+  word-break:break-all;
+}
+
+/* ---------- 功能總覽 ---------- */
+.can-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media (max-width:560px){.can-grid{grid-template-columns:1fr}}
+.can{
+  background:var(--ground);border:1px solid var(--line);
+  border-radius:16px;padding:16px;
+}
+.can .ic{font-size:34px;line-height:1}
+.can b{display:block;font-size:21px;color:var(--deep);margin:8px 0 2px}
+.can p{margin:0;font-size:17.5px;color:var(--soft)}
+
+/* ---------- 問答 ---------- */
+.qa{border-top:1px solid var(--line);padding:16px 2px}
+.qa:first-of-type{border-top:none;padding-top:6px}
+.qa .q{font-size:21px;font-weight:900;color:var(--deep);margin:0}
+.qa .q::before{content:"問：";color:var(--leaf)}
+.qa .a{font-size:19px;margin:6px 0 0}
+.qa .a::before{content:"答：";font-weight:900;color:var(--amber)}
+
+/* ---------- 求助 / 頁尾 ---------- */
+.help{
+  background:linear-gradient(120deg,#0c6b49,#22a06b);
+  color:#fff;border-radius:22px;padding:26px;margin-bottom:26px;
+}
+.help h2{font-size:26px;font-weight:900;margin:0 0 8px}
+.help p{margin:6px 0;font-size:19px}
+.help .tabhint{
+  background:rgba(255,255,255,.16);border-radius:14px;
+  padding:10px 16px;display:inline-block;font-weight:800;margin-top:6px;
+}
+footer{text-align:center;font-size:16px;color:var(--soft);padding:10px 0 30px}
+
+@media (prefers-reduced-motion: no-preference){
+  html{scroll-behavior:smooth}
+}
+
+/* ---------- 列印 ---------- */
+@page{size:A4;margin:16mm 14mm}
+@media print{
+  :root{
+    --leaf:#0f8a5f; --deep:#134e33; --ground:#fff; --card:#fff;
+    --ink:#1d2b22; --soft:#40514a; --line:#c9d8cd;
+    --amber:#a35d0a; --amber-bg:#fdf3e2; --chip:#e6f4ec;
+  }
+  body{font-size:16px;background:#fff}
+  .wrap{max-width:none;padding:0}
+  section.ch,header.cover{border-radius:12px;margin-bottom:14px;break-inside:avoid-page}
+  .step,.tipbox,.qa,.qr-zone{break-inside:avoid}
+  .help{color:#fff}
+}
+</style>
+
+<div class="wrap">
+
+<header class="cover">
+  <div class="melon">🍈</div>
+  <h1>溫室植栽專家系統</h1>
+  <p class="sub">大字版使用手冊</p>
+  <p class="meta">麥寮高中 智慧農業團隊 製作 · 適用 iPhone 與 Android 手機</p>
+  <span class="freebadge">✿ 完全免費，不用註冊、不用帳號</span>
+</header>
+
+<section class="ch">
+  <div class="ch-head"><div class="ch-num">1</div><h2>這個 App 能幫您做什麼</h2></div>
+  <p class="ch-lead">就像口袋裡帶著一位農業技師，隨時可以問。</p>
+  <div class="can-grid">
+    <div class="can"><span class="ic">📷</span><b>葉子怪怪的，拍照問它</b><p>拍一張生病的葉子或果實，它會告訴您可能是什麼病、該怎麼處理。</p></div>
+    <div class="can"><span class="ic">💬</span><b>有疑問，打字用問的</b><p>像問人一樣打字發問，它會翻栽培手冊找答案給您，還註明出處。</p></div>
+    <div class="can"><span class="ic">🌡️</span><b>看溫室裡的溫度濕度</b><p>溫度、濕度、土壤水分，人在家裡也看得到，還有趨勢圖。</p></div>
+    <div class="can"><span class="ic">⚠️</span><b>不對勁會提醒您</b><p>濕度太高、土太乾，它會警告，並告訴您一步一步怎麼處理。</p></div>
+  </div>
+</section>
+
+<section class="ch">
+  <div class="ch-head"><div class="ch-num">2</div><h2>第一次用：把 App 裝進手機</h2></div>
+  <p class="ch-lead">只要做一次，以後點桌面的綠色圖示就能打開。</p>
+
+  <div class="qr-zone">
+    <img alt="掃描 QR code 開啟溫室植栽專家系統" src="data:image/png;base64,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">
+    <div class="txt">
+      <b>用手機相機掃這個方塊</b>
+      <p style="margin:6px 0 0;font-size:18px">打開手機的「相機」對準它，畫面會跳出一行字，用手指點它，App 就開了。</p>
+      <p style="margin:10px 0 0;font-size:17px;color:var(--soft)">掃不出來？請家人幫忙在網路上打這個網址：</p>
+      <span class="url">hami-crop-advisor.vercel.app</span>
+    </div>
+  </div>
+
+  <div class="steps">
+    <div class="step"><div class="n">1</div><div class="t"><b>iPhone（蘋果手機）</b>
+      <p>打開後，點畫面下方中間的「分享」按鈕（一個方框、上面一支箭頭 ⬆️）。</p></div></div>
+    <div class="step"><div class="n">2</div><div class="t"><b>往下滑，點「加入主畫面」</b>
+      <p>再點右上角「新增」。桌面就會出現一個綠色的 App 圖示。</p></div></div>
+    <div class="step"><div class="n">3</div><div class="t"><b>Android（安卓手機）</b>
+      <p>打開後，點右上角的三個點「⋮」，選「加入主畫面」，再點「新增」。</p></div></div>
+    <div class="step"><div class="n">4</div><div class="t"><b>以後就從桌面打開</b>
+      <p>點桌面的綠色圖示，全螢幕打開，跟一般 App 一模一樣。</p></div></div>
+  </div>
+</section>
+
+<section class="ch">
+  <div class="ch-head"><div class="ch-num">3</div><h2>最常用：拍照診斷</h2></div>
+  <p class="ch-lead">葉子有斑、發黃、長粉，拍一張就知道。</p>
+
+  <div class="steps">
+    <div class="step"><div class="n">1</div><div class="t"><b>打開 App，按最上面的綠色大按鈕</b>
+      <div class="ui"><p class="cap">畫面上長這樣 ↓</p>
+        <div class="btn-green"><span style="font-size:26px">📷</span><span>拍照診斷<small>拍照上傳，AI 即時診斷作物狀況</small></span></div>
+      </div></div></div>
+    <div class="step"><div class="n">2</div><div class="t"><b>按「📷 開始拍照診斷」，選「拍照」</b>
+      <p>手機第一次會問「可不可以用相機」，請按<b>「允許」</b>。也可以選「照片圖庫」，用之前拍好的照片。</p></div></div>
+    <div class="step"><div class="n">3</div><div class="t"><b>對準生病的葉子或果實，拍一張</b>
+      <p>拍好按「使用照片」就會自動送出。</p></div></div>
+    <div class="step"><div class="n">4</div><div class="t"><b>等幾秒鐘，看結果</b>
+      <p>畫面會寫出：可能是什麼病（例如「露菌病」）、有幾成把握、以及一條一條的<b>管理建議</b>，照著做就可以。結果會自動存起來，以後可以回頭看（第 7 章）。</p></div></div>
+  </div>
+
+  <div class="tipbox">
+    <b>📸 拍照小訣竅（拍得好，判斷才會準）</b>
+    <ul>
+      <li>在<b>光線亮</b>的地方拍，不要背光、不要太暗。</li>
+      <li>鏡頭<b>靠近病斑</b>，讓有問題的地方佔滿畫面。</li>
+      <li>手拿穩，等畫面清楚了再按。</li>
+      <li>一張照片拍<b>一個問題</b>就好，不要一次拍整排。</li>
+    </ul>
+  </div>
+</section>
+
+<section class="ch">
+  <div class="ch-head"><div class="ch-num">4</div><h2>有問題，打字用問的</h2></div>
+  <p class="ch-lead">不方便拍照，或想問栽培的事，就用問的。</p>
+
+  <div class="steps">
+    <div class="step"><div class="n">1</div><div class="t"><b>在首頁按淺綠色的「症狀診斷」</b>
+      <div class="ui"><p class="cap">畫面上長這樣 ↓</p>
+        <div class="btn-light"><span style="font-size:26px">🌿</span><span>症狀診斷<br><small style="font-weight:600;font-size:14px">搜尋病蟲害與缺素症狀</small></span></div>
+      </div></div></div>
+    <div class="step"><div class="n">2</div><div class="t"><b>在白色框框裡打字問問題</b>
+      <p>像跟人講話一樣就可以，例如：「葉子背面有白白的粉，是什麼病？」</p></div></div>
+    <div class="step"><div class="n">3</div><div class="t"><b>按綠色的「問 AI」按鈕</b>
+      <div class="ui"><p class="cap">畫面上長這樣 ↓</p>
+        <div class="btn-pill">🤖 問 AI（查手冊＋網路，附來源）</div>
+      </div>
+      <p>稍等一下，答案就會出現，後面還會註明是從哪本手冊第幾頁查到的。</p></div></div>
+    <div class="step"><div class="n">4</div><div class="t"><b>懶得打字？直接點現成的關鍵字</b>
+      <p>框框下面有「關鍵字診斷」，點「白粉病」「葉片黃化」這些字，也能直接看答案。</p></div></div>
+  </div>
+</section>
+
+<section class="ch">
+  <div class="ch-head"><div class="ch-num">5</div><h2>看溫室裡的環境</h2></div>
+  <p class="ch-lead">人在家裡，也知道棚子裡熱不熱、土乾不乾。</p>
+
+  <div class="steps">
+    <div class="step"><div class="n">1</div><div class="t"><b>按畫面最下面一排的「紀錄」</b>
+      <div class="ui"><p class="cap">畫面最下面這一排 ↓</p>
+        <div class="tabbar">
+          <span><i>🏠</i>首頁</span><span class="on"><i>📋</i>紀錄</span><span><i>🌿</i>建議</span><span><i>👥</i>社群</span><span><i>👤</i>我的</span>
+        </div>
+      </div></div></div>
+    <div class="step"><div class="n">2</div><div class="t"><b>看三個數字</b>
+      <p>溫度、濕度、土壤水分。旁邊寫「適宜」就是正常，不用管它。</p></div></div>
+    <div class="step"><div class="n">3</div><div class="t"><b>想看前幾天的，點上面的「近 7 日」</b>
+      <p>可以切換「今日 / 近 7 日 / 近 30 日」，下面的線圖會跟著變，一眼看出是慢慢變熱還是變乾。</p></div></div>
+  </div>
+</section>
+
+<section class="ch">
+  <div class="ch-head"><div class="ch-num">6</div><h2>栽培建議與異常警報</h2></div>
+  <p class="ch-lead">現在這個階段該做什麼，它幫您列好了。</p>
+
+  <div class="steps">
+    <div class="step"><div class="n">1</div><div class="t"><b>按最下面一排的「建議」</b>
+      <p>最上面會寫現在的生育階段（例如「結果期」），還有這個階段的重點。</p></div></div>
+    <div class="step"><div class="n">2</div><div class="t"><b>每一項建議都能按「查看處理步驟」</b>
+      <p>會展開 1、2、3、4 步，一步一步照著做就好。灌溉、施肥、防病、採收，都有。</p></div></div>
+    <div class="step"><div class="n">3</div><div class="t"><b>看到 ⚠️ 黃色警告要留意</b>
+      <p>例如「濕度偏高，白粉病風險上升」。一樣按「查看處理步驟」，它會教您先開窗通風、再巡葉子。做不完可以按「加入待辦」，先記著。</p></div></div>
+  </div>
+</section>
+
+<section class="ch">
+  <div class="ch-head"><div class="ch-num">7</div><h2>翻以前的診斷紀錄</h2></div>
+  <p class="ch-lead">上個月那張照片是什麼病？回頭查得到。</p>
+
+  <div class="steps">
+    <div class="step"><div class="n">1</div><div class="t"><b>按最下面一排的「我的」</b></div></div>
+    <div class="step"><div class="n">2</div><div class="t"><b>點「🗂️ 診斷記錄」</b>
+      <p>之前拍照的結果、問過的問題都在裡面，點一筆就能看當時的照片和建議。</p></div></div>
+  </div>
+</section>
+
+<section class="ch">
+  <div class="ch-head"><div class="ch-num">8</div><h2>常見問題</h2></div>
+  <div class="qa"><p class="q">字太小，看不清楚怎麼辦？</p><p class="a">兩根手指按在畫面上，往外撥開，字就會放大。</p></div>
+  <div class="qa"><p class="q">要收錢嗎？</p><p class="a">完全免費，也不用註冊帳號。</p></div>
+  <div class="qa"><p class="q">沒有網路能用嗎？</p><p class="a">拍照診斷和問 AI 需要網路（家裡 Wi-Fi 或手機網路都可以）。在田裡收訊不好時，可以先拍照存著，回到家再上傳診斷。</p></div>
+  <div class="qa"><p class="q">首頁的天氣怎麼沒有顯示？</p><p class="a">點最上面的「📍」綠色小膠囊。手機問「是否允許取用位置」時，請按「允許」，天氣就會出現。</p></div>
+  <div class="qa"><p class="q">按拍照都沒有反應？</p><p class="a">應該是之前不小心按到「不允許」相機。請到手機的「設定」裡找到瀏覽器（Safari 或 Chrome），把「相機」打開，或請家人幫忙設定一次。</p></div>
+  <div class="qa"><p class="q">AI 講的一定對嗎？</p><p class="a">它是很認真的參考意見，但不是百分之百。要<b>買藥、用藥之前</b>，建議再問一下農會或改良場的專家確認。</p></div>
+</section>
+
+<div class="help">
+  <h2>🙋 需要人幫忙？</h2>
+  <p>按 App 最下面一排的「👥 社群」，會進到農友交流社團，把問題和照片貼上去，就有人回答您。</p>
+  <div class="tabhint">👥 社群 ← 就是這個按鈕</div>
+  <p style="margin-top:14px">也歡迎直接找<b>麥寮高中 智慧農業團隊</b>的同學，我們很樂意到府教學！</p>
+</div>
+
+<footer>豐泰盃 AI 應用創意實作競賽 · 麥寮高中<br>導入生成式 AI 的植栽專家系統</footer>
+
+</div>
+
+</body>
+</html>
