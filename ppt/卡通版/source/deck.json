@@ -1,0 +1,19 @@
+{
+  "v": 4,
+  "createdOnFiles": {"v": 1, "at": "2026-10-12T11:00:00+08:00"},
+  "lists": "css",
+  "title": "溫室植栽專家系統誕生記（卡通版）",
+  "order": ["cover", "cast", "act1", "act2", "act2b", "act3", "act4", "act5", "act6", "act7", "act8", "act8b", "act9", "act10", "finale"],
+  "sections": {
+    "a": {"description": "開場與登場人物", "start": "cover"},
+    "b": {"description": "一張圖變成雛形", "start": "act1"},
+    "c": {"description": "讓 AI 讀懂手冊", "start": "act3"},
+    "d": {"description": "額度危機與上網", "start": "act6"},
+    "e": {"description": "除錯地獄與大結局", "start": "act9"}
+  },
+  "faces": {
+    "chiron-goround-tc": {"family": "Chiron GoRound TC", "href": "https://fonts.googleapis.com/css2?family=Chiron+GoRound+TC:wght@400;700;900&display=swap"},
+    "lxgw-wenkai-tc": {"family": "LXGW WenKai TC", "href": "https://fonts.googleapis.com/css2?family=LXGW+WenKai+TC:wght@400;700&display=swap"}
+  },
+  "designSystems": []
+}

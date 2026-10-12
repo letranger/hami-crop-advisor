@@ -1,0 +1,37 @@
+<section id="s5-vector" data-transition="fade" style="background:#F6F4EC;color:#1F3A2B;font-family:'Noto Sans TC', Arial, sans-serif;padding:128px 128px 160px;display:flex;flex-direction:column;gap:56px">
+<div style="display:flex;flex-direction:column;gap:16px">
+<p style="font-size:28px;font-weight:700;color:#A8521A;letter-spacing:2px">步驟 5</p>
+<h2 style="font-family:'Noto Serif TC', Georgia, serif;font-size:64px;font-weight:900">Claude 的答案：轉成向量資料庫</h2>
+</div>
+<div style="display:flex;align-items:center;gap:20px">
+<div style="flex:1;background:#FFFDF7;border:2px solid #D8E2D3;border-radius:20px;padding:32px;display:flex;flex-direction:column;gap:12px">
+<p style="font-size:24px;font-weight:700;color:#2F7A4D">1 讀出文字</p>
+<h3 style="font-size:36px;font-weight:700">PDF → 文字</h3>
+<p style="font-size:24px;color:#4A5A4F;line-height:1.5">用 PyMuPDF 把每一頁的字抓出來</p>
+</div>
+<x-shape kind="arrow-right" style="width:48px;height:28px;background:#9DB5A3"></x-shape>
+<div style="flex:1;background:#FFFDF7;border:2px solid #D8E2D3;border-radius:20px;padding:32px;display:flex;flex-direction:column;gap:12px">
+<p style="font-size:24px;font-weight:700;color:#2F7A4D">2 切成小段</p>
+<h3 style="font-size:36px;font-weight:700">每段約 700 字</h3>
+<p style="font-size:24px;color:#4A5A4F;line-height:1.5">記下作物名和頁碼，方便附出處</p>
+</div>
+<x-shape kind="arrow-right" style="width:48px;height:28px;background:#9DB5A3"></x-shape>
+<div style="flex:1;background:#FFFDF7;border:2px solid #D8E2D3;border-radius:20px;padding:32px;display:flex;flex-direction:column;gap:12px">
+<p style="font-size:24px;font-weight:700;color:#2F7A4D">3 變成向量</p>
+<h3 style="font-size:36px;font-weight:700">Gemini 嵌入</h3>
+<p style="font-size:24px;color:#4A5A4F;line-height:1.5">每段變成 768 個數字，意思像的段落數字也像</p>
+</div>
+<x-shape kind="arrow-right" style="width:48px;height:28px;background:#9DB5A3"></x-shape>
+<div style="flex:1;background:#1F3A2B;border:2px solid #1F3A2B;border-radius:20px;padding:32px;display:flex;flex-direction:column;gap:12px">
+<p style="font-size:24px;font-weight:700;color:#F2A65A">4 存起來</p>
+<h3 style="font-size:36px;font-weight:700;color:#F6F4EC">kb.json</h3>
+<p style="font-size:24px;color:#C9D8CC;line-height:1.5">277 段、約 2 MB，一個檔案就是資料庫</p>
+</div>
+</div>
+<div style="display:flex;gap:24px">
+<p style="flex:1;font-size:28px;line-height:1.5;color:#4A5A4F"><b style="color:#1F3A2B">為什麼用 Gemini？</b> Claude 沒有提供嵌入服務，Gemini 有，而且免費。</p>
+<p style="flex:1;font-size:28px;line-height:1.5;color:#4A5A4F"><b style="color:#1F3A2B">為什麼用 JSON 檔？</b> 免費、不用架資料庫伺服器，只要做一次。</p>
+</div>
+<p style="position:absolute;left:128px;bottom:64px;width:1664px;font-size:24px;color:#7A877D">07</p>
+<aside>第五步，Claude 告訴我們要把文件轉成「向量資料庫」。分四步：第一，用 PyMuPDF 這個工具把 PDF 裡的字讀出來。第二，切成每段大約 700 字的小段，每段記住它是哪種作物、第幾頁。第三，用 Google Gemini 的嵌入模型，把每段文字變成 768 個數字，這就是向量。意思相近的段落，數字也會很接近，所以電腦可以用數學算出哪一段最相關。第四，全部存成一個叫 kb.json 的檔案。最後是 277 段、大約 2 MB。為什麼用 Gemini？因為 Claude 本身沒有提供把文字轉向量的服務，Gemini 有而且免費。為什麼不用真正的資料庫？因為一個 JSON 檔就夠用，免費又簡單，而且只要做一次，手冊沒改就不用重做。</aside>
+</section>

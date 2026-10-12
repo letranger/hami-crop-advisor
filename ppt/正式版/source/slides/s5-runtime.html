@@ -1,0 +1,30 @@
+<section id="s5-runtime" data-transition="fade" style="background:#E7EEE3;color:#1F3A2B;font-family:'Noto Sans TC', Arial, sans-serif;padding:128px 128px 160px;display:flex;flex-direction:column;gap:48px">
+<div style="display:flex;flex-direction:column;gap:16px">
+<p style="font-size:28px;font-weight:700;color:#A8521A;letter-spacing:2px">步驟 5（續）</p>
+<h2 style="font-family:'Noto Serif TC', Georgia, serif;font-size:64px;font-weight:900">農友問一個問題，背後發生什麼？</h2>
+</div>
+<div style="display:flex;flex-direction:column;gap:20px">
+<div style="display:flex;gap:28px;align-items:center;background:#FFFDF7;border-radius:16px;padding:24px 32px">
+<p style="font-size:44px;font-weight:900;color:#2F7A4D;width:64px">1</p>
+<p style="flex:1;font-size:32px">農友輸入：「洋香瓜葉子有白色粉末怎麼辦？」</p>
+</div>
+<div style="display:flex;gap:28px;align-items:center;background:#FFFDF7;border-radius:16px;padding:24px 32px">
+<p style="font-size:44px;font-weight:900;color:#2F7A4D;width:64px">2</p>
+<p style="flex:1;font-size:32px">問題也變成 768 個數字（Gemini）</p>
+</div>
+<div style="display:flex;gap:28px;align-items:center;background:#FFFDF7;border-radius:16px;padding:24px 32px">
+<p style="font-size:44px;font-weight:900;color:#2F7A4D;width:64px">3</p>
+<p style="flex:1;font-size:32px">和 277 段比一比，挑出最像的幾段手冊內容</p>
+</div>
+<div style="display:flex;gap:28px;align-items:center;background:#FFFDF7;border-radius:16px;padding:24px 32px">
+<p style="font-size:44px;font-weight:900;color:#2F7A4D;width:64px">4</p>
+<p style="flex:1;font-size:32px">把這幾段交給語言模型，寫成白話答案</p>
+</div>
+<div style="display:flex;gap:28px;align-items:center;background:#1F3A2B;border-radius:16px;padding:24px 32px">
+<p style="font-size:44px;font-weight:900;color:#F2A65A;width:64px">5</p>
+<p style="flex:1;font-size:32px;color:#F6F4EC">回答附上出處：《洋香瓜手冊》第 N 頁</p>
+</div>
+</div>
+<p style="position:absolute;left:128px;bottom:64px;width:1664px;font-size:24px;color:#6A776D">08</p>
+<aside>資料庫做好之後，農友問問題時是這樣運作的：問題先一樣變成 768 個數字，然後跟 277 段手冊內容逐一比較，挑出意思最接近的幾段。再把這幾段交給語言模型，請它用白話寫出答案，最後附上是哪本手冊第幾頁。注意第四步「語言模型寫答案」，就是下一張要講的麻煩所在。</aside>
+</section>

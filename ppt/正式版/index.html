@@ -1,0 +1,505 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>溫室植栽專家系統是怎麼做出來的</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@600;900&display=swap">
+<style>
+  html, body { margin: 0; background: #111; height: 100%; overflow: hidden; }
+  #stage { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; transform-origin: 0 0; }
+  section { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; box-sizing: border-box; overflow: hidden; display: none; }
+  section.active { display: flex; }
+  section *, section *::before, section *::after { box-sizing: border-box; }
+  section h1, section h2, section h3, section p, section ul, section ol { margin: 0; }
+  section ul, section ol { padding-left: 1.2em; }
+  section table { border-collapse: collapse; }
+  section th, section td { text-align: left; padding: .35em .6em; border-bottom: 2px solid rgba(0,0,0,.15); }
+  section th { border-bottom: 3px solid rgba(0,0,0,.4); }
+  section aside { display: none; }
+  section img { display: block; }
+  x-shape { display: block; flex-shrink: 0; }
+  x-shape[kind="arrow-right"] { clip-path: polygon(0 30%, 60% 30%, 60% 0, 100% 50%, 60% 100%, 60% 70%, 0 70%); }
+  x-icon { display: inline-block; flex-shrink: 0; }
+  x-icon svg { width: 100%; height: 100%; display: block; }
+  #notes { position: fixed; left: 0; right: 0; bottom: 0; max-height: 35%; overflow: auto; background: rgba(20,20,20,.92); color: #eee; font: 18px/1.6 sans-serif; padding: 16px 24px; display: none; }
+  #hint { position: fixed; right: 12px; bottom: 8px; color: #888; font: 13px sans-serif; }
+  @media print {
+    @page { size: 1920px 1080px; margin: 0; }
+    html, body { overflow: visible; height: auto; background: none; }
+    #stage { position: static; transform: none !important; width: auto; height: auto; }
+    section { position: relative; display: flex !important; page-break-after: always; break-after: page; }
+    #notes, #hint { display: none !important; }
+  }
+</style>
+</head>
+<body>
+<div id="stage">
+<section id="cover" data-transition="fade" style="background:#1F3A2B;color:#F6F4EC;font-family:'Noto Sans TC', Arial, sans-serif;padding:128px;display:flex;flex-direction:column;justify-content:center;gap:40px">
+<img src="images/mockup.jpg" alt="ChatGPT 生成的 App 首頁模擬圖" style="position:absolute;right:160px;top:96px;width:500px;height:888px;object-fit:contain;transform:rotate(4deg)">
+<p style="font-size:32px;font-weight:700;color:#F2A65A;letter-spacing:4px;width:1000px">豐泰盃 AI 應用創意實作競賽 · 麥寮高中</p>
+<h1 style="font-family:'Noto Serif TC', Georgia, serif;font-size:112px;font-weight:900;line-height:1.15;width:1100px">溫室植栽專家系統<br>是怎麼做出來的</h1>
+<p style="font-size:40px;line-height:1.5;color:#C9D8CC;width:1000px">一張 AI 生成的畫面，一群不太會寫程式的人，<br>和一位 AI 程式夥伴：Claude Code</p>
+<p style="font-size:28px;color:#9DB5A3;width:1000px">2026 年 7 月 6 日 → 8 月 14 日 · 38 次程式提交</p>
+<aside>開場：今天不講這個 App 有多厲害，而是講它是怎麼一步一步做出來的。整個過程大約五週，從 7 月 6 日第一版到 8 月 14 日做完使用手冊，總共在 GitHub 上留下 38 次提交紀錄。右邊這張圖就是一切的起點：一張 ChatGPT 畫出來的 App 畫面。</aside>
+</section>
+<section id="timeline" data-transition="fade" style="background:#F6F4EC;color:#1F3A2B;font-family:'Noto Sans TC', Arial, sans-serif;padding:128px 128px 160px;display:flex;flex-direction:column;gap:56px">
+<div style="display:flex;flex-direction:column;gap:16px">
+<p style="font-size:28px;font-weight:700;color:#A8521A;letter-spacing:2px">全貌</p>
+<h2 style="font-family:'Noto Serif TC', Georgia, serif;font-size:64px;font-weight:900">八個步驟，五週完成</h2>
+</div>
+<div style="display:grid;grid-template-columns:repeat(4, 1fr);gap:24px">
+<div style="background:#FFFDF7;border:2px solid #D8E2D3;border-radius:20px;padding:32px;display:flex;flex-direction:column;gap:12px">
+<p style="font-size:24px;font-weight:700;color:#2F7A4D">① 7/6 上午</p>
+<h3 style="font-size:36px;font-weight:700">收到 AI 畫面</h3>
+<p style="font-size:24px;color:#4A5A4F">雲龍老師傳來 ChatGPT 模擬圖</p>
+</div>
+<div style="background:#FFFDF7;border:2px solid #D8E2D3;border-radius:20px;padding:32px;display:flex;flex-direction:column;gap:12px">
+<p style="font-size:24px;font-weight:700;color:#2F7A4D">② 7/6 下午</p>
+<h3 style="font-size:36px;font-weight:700">做出雛形</h3>
+<p style="font-size:24px;color:#4A5A4F">Claude Code 寫出可操作的網頁</p>
+</div>
+<div style="background:#FFFDF7;border:2px solid #D8E2D3;border-radius:20px;padding:32px;display:flex;flex-direction:column;gap:12px">
+<p style="font-size:24px;font-weight:700;color:#2F7A4D">③ 7 月中</p>
+<h3 style="font-size:36px;font-weight:700">收到手冊</h3>
+<p style="font-size:24px;color:#4A5A4F">8 本作物栽培手冊 PDF</p>
+</div>
+<div style="background:#FFFDF7;border:2px solid #D8E2D3;border-radius:20px;padding:32px;display:flex;flex-direction:column;gap:12px">
+<p style="font-size:24px;font-weight:700;color:#2F7A4D">④ 7/18</p>
+<h3 style="font-size:36px;font-weight:700">問 Claude</h3>
+<p style="font-size:24px;color:#4A5A4F">怎樣讓 AI 讀懂這些文件？</p>
+</div>
+<div style="background:#FFFDF7;border:2px solid #D8E2D3;border-radius:20px;padding:32px;display:flex;flex-direction:column;gap:12px">
+<p style="font-size:24px;font-weight:700;color:#2F7A4D">⑤ 7/18</p>
+<h3 style="font-size:36px;font-weight:700">建向量資料庫</h3>
+<p style="font-size:24px;color:#4A5A4F">手冊切段、轉成向量</p>
+</div>
+<div style="background:#FFFDF7;border:2px solid #D8E2D3;border-radius:20px;padding:32px;display:flex;flex-direction:column;gap:12px">
+<p style="font-size:24px;font-weight:700;color:#2F7A4D">⑥ 7/18 → 7/20</p>
+<h3 style="font-size:36px;font-weight:700">額度爆掉</h3>
+<p style="font-size:24px;color:#4A5A4F">改請第二個 AI：Groq</p>
+</div>
+<div style="background:#FFFDF7;border:2px solid #D8E2D3;border-radius:20px;padding:32px;display:flex;flex-direction:column;gap:12px">
+<p style="font-size:24px;font-weight:700;color:#2F7A4D">⑦ 7/6 起</p>
+<h3 style="font-size:36px;font-weight:700">放上網路</h3>
+<p style="font-size:24px;color:#4A5A4F">GitHub ＋ Vercel</p>
+</div>
+<div style="background:#1F3A2B;border:2px solid #1F3A2B;border-radius:20px;padding:32px;display:flex;flex-direction:column;gap:12px">
+<p style="font-size:24px;font-weight:700;color:#F2A65A">⑧ 7/20 → 8/14</p>
+<h3 style="font-size:36px;font-weight:700;color:#F6F4EC">不斷除錯</h3>
+<p style="font-size:24px;color:#C9D8CC">修 bug、為農友改介面</p>
+</div>
+</div>
+<p style="position:absolute;left:128px;bottom:64px;width:1664px;font-size:24px;color:#7A877D">日期依 GitHub 提交紀錄整理 · 02</p>
+<aside>先給大家看全貌。八個步驟，日期都是從 GitHub 的提交紀錄對出來的。有一點要特別說明：第七步「放上網路」其實很早就開始了，7 月 6 日第一版做完當天就推上 GitHub，之後每改一次就自動更新網站；只是 AI 金鑰那些設定是後來才補上的。最後一步除錯花最久，從 7 月 20 日一直到 8 月 14 日。</aside>
+</section>
+<section id="s1-mockup" data-section="從畫面到雛形" data-transition="fade" style="background:#E7EEE3;color:#1F3A2B;font-family:'Noto Sans TC', Arial, sans-serif;padding:128px 128px 160px;display:flex;flex-direction:column;gap:48px">
+<div style="display:flex;flex-direction:column;gap:16px">
+<p style="font-size:28px;font-weight:700;color:#A8521A;letter-spacing:2px">步驟 1</p>
+<h2 style="font-family:'Noto Serif TC', Georgia, serif;font-size:64px;font-weight:900">起點：一張 ChatGPT 畫的 App</h2>
+</div>
+<div style="display:flex;gap:48px;align-items:start">
+<img src="images/poster.png" alt="AI 智慧植栽診斷專家系統概念海報：問題、核心功能、系統流程、導入效益" style="width:1040px;height:585px;object-fit:cover;border-radius:16px;box-shadow:0 12px 40px rgba(31,58,43,0.18)">
+<div style="flex:1;display:flex;flex-direction:column;gap:28px">
+<p style="font-size:32px;line-height:1.5">雲龍老師用 ChatGPT 生成了<b>概念海報</b>和<b>五張手機畫面</b>。</p>
+<p style="font-size:32px;line-height:1.5">畫面很漂亮，但<b>只是圖片</b>：按鈕不能按、沒有任何程式。</p>
+<p style="font-size:32px;line-height:1.5;color:#2F7A4D;font-weight:700">我們的任務：把圖變成真的能用的 App。</p>
+</div>
+</div>
+<p style="position:absolute;left:128px;bottom:64px;width:1664px;font-size:24px;color:#6A776D">03</p>
+<aside>一開始雲龍老師傳來 ChatGPT 生成的圖：一張概念海報，還有五張手機 App 畫面。海報上把問題、五大功能、系統流程都畫好了：拍照診斷、症狀選單、環境紀錄、栽培建議、異常預警。但這些都只是圖片，沒有一行程式。我們要做的，就是把這張圖變成真的能用的東西。</aside>
+</section>
+<section id="s2-prototype" data-transition="fade" style="background:#F6F4EC;color:#1F3A2B;font-family:'Noto Sans TC', Arial, sans-serif;padding:128px 128px 160px;display:flex;flex-direction:column;gap:48px">
+<div style="display:flex;flex-direction:column;gap:16px">
+<p style="font-size:28px;font-weight:700;color:#A8521A;letter-spacing:2px">步驟 2</p>
+<h2 style="font-family:'Noto Serif TC', Georgia, serif;font-size:64px;font-weight:900">把圖丟給 Claude Code，當天就有雛形</h2>
+</div>
+<div style="display:flex;gap:64px">
+<div style="flex:1;display:flex;flex-direction:column;gap:28px">
+<p style="font-size:32px;line-height:1.5">把畫面給 Claude Code，用說的告訴它要什麼。它直接在電腦裡寫程式、開檔案。</p>
+<p style="font-size:32px;line-height:1.5">先做「<b>看起來會動</b>」的版本：畫面和按鈕是真的，診斷結果先用範例假裝。</p>
+<div style="display:flex;gap:24px">
+<div style="flex:1;background:#FFFDF7;border:2px solid #D8E2D3;border-radius:20px;padding:28px;display:flex;flex-direction:column;gap:8px">
+<p style="font-size:56px;font-weight:900;color:#2F7A4D">16:12</p>
+<p style="font-size:24px;color:#4A5A4F">7/6 第一版完成</p>
+</div>
+<div style="flex:1;background:#FFFDF7;border:2px solid #D8E2D3;border-radius:20px;padding:28px;display:flex;flex-direction:column;gap:8px">
+<p style="font-size:56px;font-weight:900;color:#2F7A4D">20:17</p>
+<p style="font-size:24px;color:#4A5A4F">同一晚加上 iPad 版</p>
+</div>
+</div>
+</div>
+<div style="width:720px;display:flex;flex-direction:column;gap:20px">
+<h3 style="font-size:36px;font-weight:700">第一個決定：做網頁 App，不做 iPhone App</h3>
+<table style="font-size:26px;color:#1F3A2B;width:720px">
+<tr><th style="width:40%;text-align:left">比較</th><th style="width:30%;text-align:left">iPhone App</th><th style="width:30%;text-align:left">網頁 App</th></tr>
+<tr><td>開發者年費</td><td>US$99</td><td>免費</td></tr>
+<tr><td>上架審查</td><td>要</td><td>不用</td></tr>
+<tr><td>Android 能用</td><td>不能</td><td>能</td></tr>
+<tr><td>需要 Mac＋Xcode</td><td>要</td><td>不用</td></tr>
+</table>
+<p style="font-size:24px;color:#4A5A4F;line-height:1.5">手機「加入主畫面」後，用起來就像 App。</p>
+</div>
+</div>
+<p style="position:absolute;left:128px;bottom:64px;width:1664px;font-size:24px;color:#7A877D">04</p>
+<aside>第二步，我把這些圖交給 Claude Code。Claude Code 跟一般聊天的 AI 不同，它可以直接在電腦裡寫程式、建檔案。7 月 6 日下午 4 點 12 分就有了第一版，晚上 8 點又加上 iPad 的版面。這時診斷結果還是假的，用幾個範例輪流顯示，先把畫面和操作流程弄順。這裡做了第一個重要決定：做網頁 App 而不是 iPhone App。因為 iPhone App 要年費、要審查、Android 不能用，還要有 Mac。網頁版加到主畫面後，用起來跟 App 一樣。</aside>
+</section>
+<section id="s3-docs" data-section="讓 AI 讀懂栽培手冊" data-transition="fade" style="background:#E7EEE3;color:#1F3A2B;font-family:'Noto Sans TC', Arial, sans-serif;padding:128px 128px 160px;display:flex;flex-direction:column;gap:48px">
+<div style="display:flex;flex-direction:column;gap:16px">
+<p style="font-size:28px;font-weight:700;color:#A8521A;letter-spacing:2px">步驟 3</p>
+<h2 style="font-family:'Noto Serif TC', Georgia, serif;font-size:64px;font-weight:900">雲龍老師傳來 8 本栽培手冊</h2>
+</div>
+<div style="display:flex;gap:64px;align-items:start">
+<div style="flex:1;display:grid;grid-template-columns:repeat(2, 1fr);gap:20px">
+<p style="font-size:30px;background:#FFFDF7;border-radius:14px;padding:20px 28px">洋香瓜手冊</p>
+<p style="font-size:30px;background:#FFFDF7;border-radius:14px;padding:20px 28px">溫室番茄栽培手冊</p>
+<p style="font-size:30px;background:#FFFDF7;border-radius:14px;padding:20px 28px">小番茄栽培手冊</p>
+<p style="font-size:30px;background:#FFFDF7;border-radius:14px;padding:20px 28px">小黃瓜栽培手冊</p>
+<p style="font-size:30px;background:#FFFDF7;border-radius:14px;padding:20px 28px">甜椒栽培手冊</p>
+<p style="font-size:30px;background:#FFFDF7;border-radius:14px;padding:20px 28px;color:#4A5A4F">＋3 本英文版</p>
+</div>
+<div style="width:620px;display:flex;flex-direction:column;gap:28px">
+<p style="font-size:120px;font-weight:900;color:#2F7A4D;line-height:1">85 MB</p>
+<p style="font-size:32px;line-height:1.5">都是 PDF，一本幾十頁。</p>
+<p style="font-size:32px;line-height:1.5">問題來了：AI 一次讀不了這麼多，<b>也不能每次都從頭翻一遍</b>。</p>
+</div>
+</div>
+<p style="position:absolute;left:128px;bottom:64px;width:1664px;font-size:24px;color:#6A776D">05</p>
+<aside>雛形有了，可是診斷建議要從哪裡來？第三步，雲龍老師傳來 8 本栽培手冊 PDF：洋香瓜、番茄、小番茄、小黃瓜、甜椒，另外還有 3 本英文版，加起來 85 MB。這些是政府改良場出版的，內容可靠。但問題是：AI 不可能每次回答問題都把這 85 MB 從頭讀一遍。</aside>
+</section>
+<section id="s4-ask" data-transition="fade" style="background:#F6F4EC;color:#1F3A2B;font-family:'Noto Sans TC', Arial, sans-serif;padding:128px 128px 160px;display:flex;flex-direction:column;gap:40px">
+<div style="display:flex;flex-direction:column;gap:16px">
+<p style="font-size:28px;font-weight:700;color:#A8521A;letter-spacing:2px">步驟 4</p>
+<h2 style="font-family:'Noto Serif TC', Georgia, serif;font-size:64px;font-weight:900">問 Claude：怎麼把文件做成 AI 能讀的資料庫？</h2>
+</div>
+<div style="display:flex;gap:56px;align-items:start">
+<div style="width:700px;display:flex;flex-direction:column;gap:24px">
+<div style="background:#FFFDF7;border-left:8px solid #A8521A;border-radius:12px;padding:28px 32px;display:flex;flex-direction:column;gap:12px">
+<p style="font-size:24px;font-weight:700;color:#A8521A">先想走捷徑</p>
+<p style="font-size:30px;line-height:1.5">把 GPTs 或 Gemini Gem 直接嵌進網頁？</p>
+<p style="font-size:26px;line-height:1.5;color:#4A5A4F">→ 官方不允許，此路不通</p>
+</div>
+<div style="background:#FFFDF7;border-left:8px solid #2F7A4D;border-radius:12px;padding:28px 32px;display:flex;flex-direction:column;gap:12px">
+<p style="font-size:24px;font-weight:700;color:#2F7A4D">Claude 的建議</p>
+<p style="font-size:30px;line-height:1.5">自己做 <b>RAG</b>：先查資料，再寫答案</p>
+<p style="font-size:26px;line-height:1.5;color:#4A5A4F">像幫 AI 蓋一座「小圖書館」</p>
+</div>
+</div>
+<img src="images/rag-flow.jpg" alt="RAG 資料流程圖：使用者 → 知識檢索（知識庫＋網路搜尋）→ GPT 推理 → 回答生成 → 最終結果" style="flex:1;height:540px;object-fit:contain;background:#FFFFFF;border-radius:16px;border:2px solid #D8E2D3">
+</div>
+<p style="position:absolute;left:128px;bottom:64px;width:1664px;font-size:24px;color:#7A877D">06</p>
+<aside>第四步，我把手冊交給 Claude，問它：怎樣把這些文件做成 AI 可以讀的資料庫？其實一開始我們想偷懶：ChatGPT 的 GPTs 跟 Gemini 的 Gem 都可以上傳文件做一個專屬機器人，那直接嵌進網頁不就好了？結果官方不允許嵌入，也不能用程式呼叫。所以 Claude 建議我們自己做 RAG，中文叫「檢索增強生成」。簡單講就是：先去小圖書館找出相關段落，AI 再根據這些段落寫答案，這樣答案有根據，還能附上第幾頁。右邊是後來整理的流程圖。</aside>
+</section>
+<section id="s5-vector" data-transition="fade" style="background:#F6F4EC;color:#1F3A2B;font-family:'Noto Sans TC', Arial, sans-serif;padding:128px 128px 160px;display:flex;flex-direction:column;gap:56px">
+<div style="display:flex;flex-direction:column;gap:16px">
+<p style="font-size:28px;font-weight:700;color:#A8521A;letter-spacing:2px">步驟 5</p>
+<h2 style="font-family:'Noto Serif TC', Georgia, serif;font-size:64px;font-weight:900">Claude 的答案：轉成向量資料庫</h2>
+</div>
+<div style="display:flex;align-items:center;gap:20px">
+<div style="flex:1;background:#FFFDF7;border:2px solid #D8E2D3;border-radius:20px;padding:32px;display:flex;flex-direction:column;gap:12px">
+<p style="font-size:24px;font-weight:700;color:#2F7A4D">1 讀出文字</p>
+<h3 style="font-size:36px;font-weight:700">PDF → 文字</h3>
+<p style="font-size:24px;color:#4A5A4F;line-height:1.5">用 PyMuPDF 把每一頁的字抓出來</p>
+</div>
+<x-shape kind="arrow-right" style="width:48px;height:28px;background:#9DB5A3"></x-shape>
+<div style="flex:1;background:#FFFDF7;border:2px solid #D8E2D3;border-radius:20px;padding:32px;display:flex;flex-direction:column;gap:12px">
+<p style="font-size:24px;font-weight:700;color:#2F7A4D">2 切成小段</p>
+<h3 style="font-size:36px;font-weight:700">每段約 700 字</h3>
+<p style="font-size:24px;color:#4A5A4F;line-height:1.5">記下作物名和頁碼，方便附出處</p>
+</div>
+<x-shape kind="arrow-right" style="width:48px;height:28px;background:#9DB5A3"></x-shape>
+<div style="flex:1;background:#FFFDF7;border:2px solid #D8E2D3;border-radius:20px;padding:32px;display:flex;flex-direction:column;gap:12px">
+<p style="font-size:24px;font-weight:700;color:#2F7A4D">3 變成向量</p>
+<h3 style="font-size:36px;font-weight:700">Gemini 嵌入</h3>
+<p style="font-size:24px;color:#4A5A4F;line-height:1.5">每段變成 768 個數字，意思像的段落數字也像</p>
+</div>
+<x-shape kind="arrow-right" style="width:48px;height:28px;background:#9DB5A3"></x-shape>
+<div style="flex:1;background:#1F3A2B;border:2px solid #1F3A2B;border-radius:20px;padding:32px;display:flex;flex-direction:column;gap:12px">
+<p style="font-size:24px;font-weight:700;color:#F2A65A">4 存起來</p>
+<h3 style="font-size:36px;font-weight:700;color:#F6F4EC">kb.json</h3>
+<p style="font-size:24px;color:#C9D8CC;line-height:1.5">277 段、約 2 MB，一個檔案就是資料庫</p>
+</div>
+</div>
+<div style="display:flex;gap:24px">
+<p style="flex:1;font-size:28px;line-height:1.5;color:#4A5A4F"><b style="color:#1F3A2B">為什麼用 Gemini？</b> Claude 沒有提供嵌入服務，Gemini 有，而且免費。</p>
+<p style="flex:1;font-size:28px;line-height:1.5;color:#4A5A4F"><b style="color:#1F3A2B">為什麼用 JSON 檔？</b> 免費、不用架資料庫伺服器，只要做一次。</p>
+</div>
+<p style="position:absolute;left:128px;bottom:64px;width:1664px;font-size:24px;color:#7A877D">07</p>
+<aside>第五步，Claude 告訴我們要把文件轉成「向量資料庫」。分四步：第一，用 PyMuPDF 這個工具把 PDF 裡的字讀出來。第二，切成每段大約 700 字的小段，每段記住它是哪種作物、第幾頁。第三，用 Google Gemini 的嵌入模型，把每段文字變成 768 個數字，這就是向量。意思相近的段落，數字也會很接近，所以電腦可以用數學算出哪一段最相關。第四，全部存成一個叫 kb.json 的檔案。最後是 277 段、大約 2 MB。為什麼用 Gemini？因為 Claude 本身沒有提供把文字轉向量的服務，Gemini 有而且免費。為什麼不用真正的資料庫？因為一個 JSON 檔就夠用，免費又簡單，而且只要做一次，手冊沒改就不用重做。</aside>
+</section>
+<section id="s5-runtime" data-transition="fade" style="background:#E7EEE3;color:#1F3A2B;font-family:'Noto Sans TC', Arial, sans-serif;padding:128px 128px 160px;display:flex;flex-direction:column;gap:48px">
+<div style="display:flex;flex-direction:column;gap:16px">
+<p style="font-size:28px;font-weight:700;color:#A8521A;letter-spacing:2px">步驟 5（續）</p>
+<h2 style="font-family:'Noto Serif TC', Georgia, serif;font-size:64px;font-weight:900">農友問一個問題，背後發生什麼？</h2>
+</div>
+<div style="display:flex;flex-direction:column;gap:20px">
+<div style="display:flex;gap:28px;align-items:center;background:#FFFDF7;border-radius:16px;padding:24px 32px">
+<p style="font-size:44px;font-weight:900;color:#2F7A4D;width:64px">1</p>
+<p style="flex:1;font-size:32px">農友輸入：「洋香瓜葉子有白色粉末怎麼辦？」</p>
+</div>
+<div style="display:flex;gap:28px;align-items:center;background:#FFFDF7;border-radius:16px;padding:24px 32px">
+<p style="font-size:44px;font-weight:900;color:#2F7A4D;width:64px">2</p>
+<p style="flex:1;font-size:32px">問題也變成 768 個數字（Gemini）</p>
+</div>
+<div style="display:flex;gap:28px;align-items:center;background:#FFFDF7;border-radius:16px;padding:24px 32px">
+<p style="font-size:44px;font-weight:900;color:#2F7A4D;width:64px">3</p>
+<p style="flex:1;font-size:32px">和 277 段比一比，挑出最像的幾段手冊內容</p>
+</div>
+<div style="display:flex;gap:28px;align-items:center;background:#FFFDF7;border-radius:16px;padding:24px 32px">
+<p style="font-size:44px;font-weight:900;color:#2F7A4D;width:64px">4</p>
+<p style="flex:1;font-size:32px">把這幾段交給語言模型，寫成白話答案</p>
+</div>
+<div style="display:flex;gap:28px;align-items:center;background:#1F3A2B;border-radius:16px;padding:24px 32px">
+<p style="font-size:44px;font-weight:900;color:#F2A65A;width:64px">5</p>
+<p style="flex:1;font-size:32px;color:#F6F4EC">回答附上出處：《洋香瓜手冊》第 N 頁</p>
+</div>
+</div>
+<p style="position:absolute;left:128px;bottom:64px;width:1664px;font-size:24px;color:#6A776D">08</p>
+<aside>資料庫做好之後，農友問問題時是這樣運作的：問題先一樣變成 768 個數字，然後跟 277 段手冊內容逐一比較，挑出意思最接近的幾段。再把這幾段交給語言模型，請它用白話寫出答案，最後附上是哪本手冊第幾頁。注意第四步「語言模型寫答案」，就是下一張要講的麻煩所在。</aside>
+</section>
+<section id="s6-quota" data-section="額度危機與上線" data-transition="fade" style="background:#1F3A2B;color:#F6F4EC;font-family:'Noto Sans TC', Arial, sans-serif;padding:128px 128px 160px;display:flex;flex-direction:column;gap:48px">
+<div style="display:flex;flex-direction:column;gap:16px">
+<p style="font-size:28px;font-weight:700;color:#F2A65A;letter-spacing:2px">步驟 6</p>
+<h2 style="font-family:'Noto Serif TC', Georgia, serif;font-size:64px;font-weight:900">免費額度爆了：找來第二個 AI</h2>
+</div>
+<p style="font-size:30px;font-family:'Courier New', monospace;color:#F2A65A;background:#2A4A37;border-radius:12px;padding:20px 28px">429 generate_content_free_tier_input_tokens</p>
+<div style="display:flex;gap:24px">
+<div style="flex:1;display:flex;flex-direction:column;gap:12px;border-top:4px solid #5E7D68;padding:24px 0 0 0">
+<p style="font-size:24px;font-weight:700;color:#9DB5A3">7/18 20:53</p>
+<p style="font-size:28px;line-height:1.5">加上「等一下再重試」</p>
+<p style="font-size:24px;color:#9DB5A3">沒用</p>
+</div>
+<div style="flex:1;display:flex;flex-direction:column;gap:12px;border-top:4px solid #5E7D68;padding:24px 0 0 0">
+<p style="font-size:24px;font-weight:700;color:#9DB5A3">7/18 20:56</p>
+<p style="font-size:28px;line-height:1.5">換成額度較寬的 flash-lite</p>
+<p style="font-size:24px;color:#9DB5A3">還是沒用，卡了兩天</p>
+</div>
+<div style="flex:1;display:flex;flex-direction:column;gap:12px;border-top:4px solid #F2A65A;padding:24px 0 0 0">
+<p style="font-size:24px;font-weight:700;color:#F2A65A">7/20 15:18 解決</p>
+<p style="font-size:28px;line-height:1.5">寫答案改用 <b>Groq</b>（Llama 3.3 70B）</p>
+<p style="font-size:24px;color:#C9D8CC">一樣免費、不用綁卡</p>
+</div>
+</div>
+<div style="display:flex;gap:24px">
+<p style="flex:1;font-size:30px;background:#2A4A37;border-radius:14px;padding:24px 28px"><b style="color:#F2A65A">Gemini</b>：負責「找資料」（向量）</p>
+<p style="flex:1;font-size:30px;background:#2A4A37;border-radius:14px;padding:24px 28px"><b style="color:#F2A65A">Groq</b>：負責「寫答案」</p>
+</div>
+<p style="position:absolute;left:128px;bottom:64px;width:1664px;font-size:24px;color:#9DB5A3">09</p>
+<aside>這是整個過程最卡的一段。原本找資料和寫答案都用 Gemini，結果一測試就跳出 429 錯誤，意思是免費的「生成」額度用完了。7 月 18 日晚上我們先讓程式遇到錯誤時等一下再重試，沒用；三分鐘後換成號稱額度比較寬的 flash-lite 模型，還是沒用，而且一卡就是兩天，不是隔天就會恢復。Claude 給了幾個選項：開 Google 付費、改用付費的 OpenAI 或 Claude，或是改用免費的 Groq。我們預算只有六千元，所以選了 Groq。7 月 20 日下午改好：找資料留在 Gemini，因為那部分額度很夠；寫答案交給 Groq 上的 Llama 3.3 模型。分工之後就沒再卡過。這就是你們記得的「第二個 LLM」。後來 7 月 20 日晚上又加了第三個服務 Tavily，讓 AI 也能上網查最新資料。</aside>
+</section>
+<section id="s7-deploy" data-transition="fade" style="background:#F6F4EC;color:#1F3A2B;font-family:'Noto Sans TC', Arial, sans-serif;padding:128px 128px 160px;display:flex;flex-direction:column;gap:56px">
+<div style="display:flex;flex-direction:column;gap:16px">
+<p style="font-size:28px;font-weight:700;color:#A8521A;letter-spacing:2px">步驟 7</p>
+<h2 style="font-family:'Noto Serif TC', Georgia, serif;font-size:64px;font-weight:900">放上網路：GitHub ＋ Vercel</h2>
+</div>
+<div style="display:flex;align-items:center;gap:24px">
+<div style="flex:1;background:#FFFDF7;border:2px solid #D8E2D3;border-radius:20px;padding:32px;display:flex;flex-direction:column;gap:12px">
+<x-icon name="Code" style="color:#2F7A4D;width:56px;height:56px"></x-icon>
+<h3 style="font-size:36px;font-weight:700">自己的電腦</h3>
+<p style="font-size:26px;color:#4A5A4F;line-height:1.5">Claude Code 改好程式</p>
+</div>
+<x-shape kind="arrow-right" style="width:56px;height:32px;background:#9DB5A3"></x-shape>
+<div style="flex:1;background:#FFFDF7;border:2px solid #D8E2D3;border-radius:20px;padding:32px;display:flex;flex-direction:column;gap:12px">
+<x-icon name="Database" style="color:#2F7A4D;width:56px;height:56px"></x-icon>
+<h3 style="font-size:36px;font-weight:700">GitHub</h3>
+<p style="font-size:26px;color:#4A5A4F;line-height:1.5">保存程式碼和每一次修改紀錄</p>
+</div>
+<x-shape kind="arrow-right" style="width:56px;height:32px;background:#9DB5A3"></x-shape>
+<div style="flex:1;background:#FFFDF7;border:2px solid #D8E2D3;border-radius:20px;padding:32px;display:flex;flex-direction:column;gap:12px">
+<x-icon name="Cloud" style="color:#2F7A4D;width:56px;height:56px"></x-icon>
+<h3 style="font-size:36px;font-weight:700">Vercel</h3>
+<p style="font-size:26px;color:#4A5A4F;line-height:1.5">30～60 秒自動更新網站</p>
+</div>
+<x-shape kind="arrow-right" style="width:56px;height:32px;background:#9DB5A3"></x-shape>
+<div style="flex:1;background:#1F3A2B;border:2px solid #1F3A2B;border-radius:20px;padding:32px;display:flex;flex-direction:column;gap:12px">
+<x-icon name="Globe" style="color:#F2A65A;width:56px;height:56px"></x-icon>
+<h3 style="font-size:36px;font-weight:700;color:#F6F4EC">農友手機</h3>
+<p style="font-size:26px;color:#C9D8CC;line-height:1.5">開網址、加入主畫面</p>
+</div>
+</div>
+<div style="background:#E7EEE3;border-radius:16px;padding:28px 36px;display:flex;flex-direction:column;gap:12px">
+<h3 style="font-size:32px;font-weight:700">為什麼不用免費的 GitHub Pages 就好？</h3>
+<p style="font-size:28px;line-height:1.5;color:#4A5A4F">AI 服務的「鑰匙」（API 金鑰）不能寫在網頁裡，否則誰都能偷用。Vercel 能在伺服器端跑程式，把鑰匙藏起來。</p>
+</div>
+<p style="position:absolute;left:128px;bottom:64px;width:1664px;font-size:24px;color:#7A877D">hami-crop-advisor.vercel.app · 10</p>
+<aside>第七步是上網。我們問 Claude：做好了要怎麼讓大家用？它建議兩個網站：GitHub 用來保存程式碼，每次修改都有紀錄，我們這次總共 38 筆；Vercel 用來架網站，只要程式推上 GitHub，Vercel 30 到 60 秒內就會自動更新。為什麼不只用 GitHub Pages？因為 Pages 只能放靜態網頁，AI 的金鑰如果寫在網頁裡，任何人打開原始碼就能偷用。Vercel 可以在伺服器那端執行程式，鑰匙藏在那裡，網頁看不到。註冊過程網站都是英文，卡住就截圖問 Claude 下一步按哪裡。</aside>
+</section>
+<section id="s7-free" data-transition="fade" style="background:#E7EEE3;color:#1F3A2B;font-family:'Noto Sans TC', Arial, sans-serif;padding:128px 128px 160px;display:flex;flex-direction:column;gap:40px">
+<div style="display:flex;flex-direction:column;gap:16px">
+<p style="font-size:28px;font-weight:700;color:#A8521A;letter-spacing:2px">步驟 7（續）</p>
+<h2 style="font-family:'Noto Serif TC', Georgia, serif;font-size:64px;font-weight:900">申請了六個服務，花費 0 元</h2>
+</div>
+<div style="display:flex;gap:56px;align-items:center">
+<table style="flex:1;font-size:28px;color:#1F3A2B">
+<tr><th style="width:34%;text-align:left">服務</th><th style="width:66%;text-align:left">在 App 裡負責什麼</th></tr>
+<tr><td>GitHub</td><td>保存程式碼</td></tr>
+<tr><td>Vercel</td><td>架網站、藏鑰匙</td></tr>
+<tr><td>Google AI Studio</td><td>Gemini：找資料（向量）</td></tr>
+<tr><td>Groq</td><td>Llama 3.3：寫答案</td></tr>
+<tr><td>Tavily</td><td>上網搜尋最新農業資訊</td></tr>
+<tr><td>Upstash Redis</td><td>共享診斷紀錄、快取答案</td></tr>
+</table>
+<div style="width:520px;display:flex;flex-direction:column;gap:20px;align-items:center">
+<p style="font-family:'Noto Serif TC', Georgia, serif;font-size:200px;font-weight:900;color:#2F7A4D;line-height:1">0 元</p>
+<p style="font-size:30px;text-align:center;line-height:1.5;color:#4A5A4F">全部免費額度，<br>不用綁信用卡</p>
+<p style="font-size:26px;text-align:center;color:#4A5A4F">（計畫上限 NT$6,000）</p>
+</div>
+</div>
+<p style="position:absolute;left:128px;bottom:64px;width:1664px;font-size:24px;color:#6A776D">11</p>
+<aside>整理一下，最後總共申請了六個服務：GitHub 存程式、Vercel 架網站、Google AI Studio 拿 Gemini 金鑰負責找資料、Groq 負責寫答案、Tavily 負責上網搜尋，還有 Upstash Redis，讓所有農友的診斷紀錄可以共享，同一個問題問過就直接用存好的答案。六個全部用免費額度，不用綁信用卡。整個系統到現在花費是零元。</aside>
+</section>
+<section id="s8-debug" data-section="除錯、現況與心得" data-transition="fade" style="background:#F6F4EC;color:#1F3A2B;font-family:'Noto Sans TC', Arial, sans-serif;padding:128px 128px 160px;display:flex;flex-direction:column;gap:40px">
+<div style="display:flex;flex-direction:column;gap:16px">
+<p style="font-size:28px;font-weight:700;color:#A8521A;letter-spacing:2px">步驟 8</p>
+<h2 style="font-family:'Noto Serif TC', Georgia, serif;font-size:64px;font-weight:900">不斷除錯：遇到的真實問題</h2>
+</div>
+<table style="font-size:27px;color:#1F3A2B">
+<tr><th style="width:36%;text-align:left">遇到的問題</th><th style="width:28%;text-align:left">原因</th><th style="width:36%;text-align:left">怎麼解決</th></tr>
+<tr><td>程式推不上 GitHub</td><td>不再接受密碼</td><td>改用專用通行憑證</td></tr>
+<tr><td>手機上定位、天氣不出來</td><td>瀏覽器沒有定位權限</td><td>到設定按「允許」</td></tr>
+<tr><td>改了程式，手機還是舊版</td><td>App 一直讀舊快取</td><td>改成「先上網抓新版」</td></tr>
+<tr><td>預警面板點了打不開</td><td>少一條展開的樣式</td><td>補上樣式（7/27）</td></tr>
+<tr><td>拍人像也給出病害診斷</td><td>沒先檢查是不是植物</td><td>依綠色比例先過濾（8/11）</td></tr>
+<tr><td>同時問太多，AI 忙不過來</td><td>免費額度有上限</td><td>同題答案存起來重用</td></tr>
+</table>
+<p style="position:absolute;left:128px;bottom:64px;width:1664px;font-size:24px;color:#7A877D">12</p>
+<aside>最後一步，也是最花時間的：不斷除錯。挑六個真實遇到的問題。第一，程式推不上 GitHub，因為 GitHub 早就不收密碼了，要另外申請憑證。第二，電腦上好好的，手機上定位天氣卻不出來，原來是手機沒允許瀏覽器存取定位。第三，明明改好了，手機看到的還是舊版，因為 App 會把網頁存在手機裡，我們把它改成有網路就先抓最新版。第四，預警面板點了沒反應，只是少了一行樣式。第五，有人拍自己的臉，系統竟然也說是白粉病，所以加了一個檢查：照片裡綠色太少，就請他重拍植物。第六，同時很多人問會超過額度，所以同一個問題問過一次，答案就存起來直接重用。方法都一樣：把錯誤畫面截圖給 Claude，問它為什麼。</aside>
+</section>
+<section id="s8-farmers" data-transition="fade" style="background:#E7EEE3;color:#1F3A2B;font-family:'Noto Sans TC', Arial, sans-serif;padding:128px 128px 160px;display:flex;flex-direction:column;gap:48px">
+<div style="display:flex;flex-direction:column;gap:16px">
+<p style="font-size:28px;font-weight:700;color:#A8521A;letter-spacing:2px">步驟 8（續）</p>
+<h2 style="font-family:'Noto Serif TC', Georgia, serif;font-size:64px;font-weight:900">也在除「農友看不懂」的 bug</h2>
+</div>
+<div style="display:grid;grid-template-columns:repeat(3, 1fr);gap:24px">
+<div style="background:#FFFDF7;border-radius:20px;padding:32px;display:flex;flex-direction:column;gap:12px">
+<p style="font-size:24px;font-weight:700;color:#2F7A4D">7/20</p>
+<h3 style="font-size:34px;font-weight:700">字放大</h3>
+<p style="font-size:26px;color:#4A5A4F;line-height:1.5">全站字級和底部按鈕都放大，照顧長輩視力</p>
+</div>
+<div style="background:#FFFDF7;border-radius:20px;padding:32px;display:flex;flex-direction:column;gap:12px">
+<p style="font-size:24px;font-weight:700;color:#2F7A4D">7/20</p>
+<h3 style="font-size:34px;font-weight:700">拿掉英文</h3>
+<p style="font-size:26px;color:#4A5A4F;line-height:1.5">「AI Smart Crop Advisor」等英文全部移除</p>
+</div>
+<div style="background:#FFFDF7;border-radius:20px;padding:32px;display:flex;flex-direction:column;gap:12px">
+<p style="font-size:24px;font-weight:700;color:#2F7A4D">7/20</p>
+<h3 style="font-size:34px;font-weight:700">主功能置頂</h3>
+<p style="font-size:26px;color:#4A5A4F;line-height:1.5">拍照診斷、症狀診斷變成首頁最大的兩張卡</p>
+</div>
+<div style="background:#FFFDF7;border-radius:20px;padding:32px;display:flex;flex-direction:column;gap:12px">
+<p style="font-size:24px;font-weight:700;color:#2F7A4D">7/21</p>
+<h3 style="font-size:34px;font-weight:700">一顆按鈕</h3>
+<p style="font-size:26px;color:#4A5A4F;line-height:1.5">查手冊＋查網路合併成一次回答，標明來源</p>
+</div>
+<div style="background:#FFFDF7;border-radius:20px;padding:32px;display:flex;flex-direction:column;gap:12px">
+<p style="font-size:24px;font-weight:700;color:#2F7A4D">7/23</p>
+<h3 style="font-size:34px;font-weight:700">少一層</h3>
+<p style="font-size:26px;color:#4A5A4F;line-height:1.5">拿掉重複的「診斷」分頁，入口只留一個</p>
+</div>
+<div style="background:#1F3A2B;border-radius:20px;padding:32px;display:flex;flex-direction:column;gap:12px">
+<p style="font-size:24px;font-weight:700;color:#F2A65A">8/14</p>
+<h3 style="font-size:34px;font-weight:700;color:#F6F4EC">大字版手冊</h3>
+<p style="font-size:26px;color:#C9D8CC;line-height:1.5">可列印，附安裝用 QR code</p>
+</div>
+</div>
+<p style="position:absolute;left:128px;bottom:64px;width:1664px;font-size:24px;color:#6A776D">13</p>
+<aside>除錯不只是修程式錯誤。對農友來說，「看不懂」、「找不到」也是 bug。7 月 20 日我們一口氣做了幾件事：字放大、拿掉所有英文、把拍照診斷和症狀診斷放到首頁最上面。7 月 21 日把查手冊跟查網路合成一顆按鈕。7 月 23 日拿掉重複的診斷分頁，讓入口只有一個。最後 8 月 14 日做了一份大字版、可以列印的使用手冊，上面有 QR code，掃了就能安裝。</aside>
+</section>
+<section id="status" data-transition="fade" style="background:#F6F4EC;color:#1F3A2B;font-family:'Noto Sans TC', Arial, sans-serif;padding:128px 128px 160px;display:flex;flex-direction:column;gap:48px">
+<div style="display:flex;flex-direction:column;gap:16px">
+<p style="font-size:28px;font-weight:700;color:#A8521A;letter-spacing:2px">誠實盤點</p>
+<h2 style="font-family:'Noto Serif TC', Georgia, serif;font-size:64px;font-weight:900">現在做到哪裡？</h2>
+</div>
+<div style="display:flex;gap:40px">
+<div style="flex:1;background:#FFFDF7;border-top:8px solid #2F7A4D;border-radius:16px;padding:36px;display:flex;flex-direction:column;gap:20px">
+<h3 style="font-size:40px;font-weight:700;color:#2F7A4D">已經真的能用</h3>
+<ul style="font-size:30px;line-height:1.6">
+<li>問答：查手冊＋查網路，附出處</li>
+<li>首頁定位與即時天氣</li>
+<li>全體共享的診斷紀錄</li>
+<li>非植物照片過濾</li>
+<li>網址上線、可加入主畫面</li>
+</ul>
+</div>
+<div style="flex:1;background:#FFFDF7;border-top:8px solid #A8521A;border-radius:16px;padding:36px;display:flex;flex-direction:column;gap:20px">
+<h3 style="font-size:40px;font-weight:700;color:#A8521A">還是示範版</h3>
+<ul style="font-size:30px;line-height:1.6">
+<li>拍照辨識病害：目前用範例結果，建議內容是真的</li>
+<li>溫濕度感測：還沒接上 ESP32</li>
+</ul>
+<p style="font-size:26px;line-height:1.5;color:#4A5A4F">下一步：接上影像辨識模型、接上感測器資料</p>
+</div>
+</div>
+<p style="position:absolute;left:128px;bottom:64px;width:1664px;font-size:24px;color:#7A877D">14</p>
+<aside>誠實盤點一下現況。真的能用的：問答功能會查手冊也會查網路，答案附出處；首頁有定位和天氣；診斷紀錄是所有人共享的；拍到不是植物的照片會被擋下來；網站已經上線。還是示範版的有兩個：第一，拍照辨識病害這一步，目前是用範例結果，不過後面給的管理建議是真的從手冊查出來的。第二，溫濕度這些感測數據還沒接上 ESP32。這兩個就是下一步。</aside>
+</section>
+<section id="closing" data-transition="fade" style="background:#1F3A2B;color:#F6F4EC;font-family:'Noto Sans TC', Arial, sans-serif;padding:128px;display:flex;flex-direction:column;justify-content:center;gap:56px">
+<p style="font-size:28px;font-weight:700;color:#F2A65A;letter-spacing:2px">學到的事</p>
+<h2 style="font-family:'Noto Serif TC', Georgia, serif;font-size:88px;font-weight:900;line-height:1.25">想清楚 → 做出來 → 放上去<br>→ 卡住就問 → 修好再繼續</h2>
+<div style="display:flex;gap:32px">
+<p style="flex:1;font-size:30px;line-height:1.5;color:#C9D8CC;border-top:3px solid #5E7D68;padding:24px 0 0 0">不用先會寫程式，但要<b style="color:#F6F4EC">把問題說清楚</b></p>
+<p style="flex:1;font-size:30px;line-height:1.5;color:#C9D8CC;border-top:3px solid #5E7D68;padding:24px 0 0 0">卡住時<b style="color:#F6F4EC">截圖給 AI 看</b>，比自己猜快</p>
+<p style="flex:1;font-size:30px;line-height:1.5;color:#C9D8CC;border-top:3px solid #5E7D68;padding:24px 0 0 0">免費服務可以<b style="color:#F6F4EC">混搭</b>，一家不夠就分工</p>
+</div>
+<p style="font-size:32px;color:#F2A65A">謝謝聆聽 · hami-crop-advisor.vercel.app</p>
+<aside>最後總結。回頭看，這八個步驟其實是一個循環：想清楚、做出來、放上去、卡住就問、修好再繼續。三個心得：第一，不用先會寫程式，但要能把問題說清楚。第二，卡住時把畫面截圖給 AI 看，比自己亂猜快很多。第三，免費服務可以混搭，一家額度不夠，就讓兩家分工。網址在這裡，歡迎大家用手機打開試試看。謝謝。</aside>
+</section>
+</div>
+<div id="notes"></div>
+<div id="hint">← → 換頁 · N 講稿 · F 全螢幕</div>
+<script>
+const ICONS = {
+  Code: '<path d="M8 6 2 12l6 6M16 6l6 6-6 6"/>',
+  Database: '<ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v14c0 1.7 3.6 3 8 3s8-1.3 8-3V5M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"/>',
+  Cloud: '<path d="M7 19h10a4.5 4.5 0 0 0 .5-9A6 6 0 0 0 6 11.5 3.8 3.8 0 0 0 7 19z"/>',
+  Globe: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.7 3.8 5.7 3.8 9s-1.3 6.3-3.8 9c-2.5-2.7-3.8-5.7-3.8-9S9.5 5.7 12 3z"/>',
+  Lock: '<rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>',
+  Home: '<path d="M3 11 12 3l9 8v10H3z"/><path d="M9 21v-6h6v6"/>',
+  Check: '<path d="M4 12.5 9.5 18 20 6"/>'
+};
+document.querySelectorAll('x-icon').forEach(el => {
+  el.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">' + (ICONS[el.getAttribute('name')] || '') + '</svg>';
+});
+document.querySelectorAll('x-connector').forEach(el => {
+  const s = el.style, c = s.color || '#333', w = parseFloat(s.borderWidth) || 2;
+  const dash = s.borderStyle === 'dashed' ? (w * 3) + ' ' + (w * 2) : (s.borderStyle === 'dotted' ? w + ' ' + w : '');
+  const ns = 'http://www.w3.org/2000/svg';
+  const svg = document.createElementNS(ns, 'svg');
+  svg.setAttribute('width', 1920); svg.setAttribute('height', 1080);
+  svg.style.cssText = 'position:absolute;left:0;top:0;pointer-events:none';
+  const line = document.createElementNS(ns, 'line');
+  ['x1','y1','x2','y2'].forEach(k => line.setAttribute(k, el.getAttribute(k)));
+  line.setAttribute('stroke', c); line.setAttribute('stroke-width', w); line.setAttribute('stroke-linecap', 'round');
+  if (dash) line.setAttribute('stroke-dasharray', dash);
+  svg.appendChild(line); el.replaceWith(svg);
+});
+const slides = [...document.querySelectorAll('section')];
+const notes = document.getElementById('notes');
+let i = Math.max(0, Math.min(slides.length - 1, (parseInt(location.hash.slice(1)) || 1) - 1));
+function show(n) {
+  i = Math.max(0, Math.min(slides.length - 1, n));
+  slides.forEach((s, k) => s.classList.toggle('active', k === i));
+  const a = slides[i].querySelector('aside');
+  notes.textContent = a ? a.textContent : '';
+  history.replaceState(null, '', '#' + (i + 1));
+}
+function fit() {
+  const sc = Math.min(innerWidth / 1920, innerHeight / 1080);
+  const st = document.getElementById('stage');
+  st.style.transform = 'translate(' + (innerWidth - 1920 * sc) / 2 + 'px,' + (innerHeight - 1080 * sc) / 2 + 'px) scale(' + sc + ')';
+}
+addEventListener('resize', fit);
+addEventListener('keydown', e => {
+  if (['ArrowRight', 'ArrowDown', 'PageDown', ' '].includes(e.key)) show(i + 1);
+  else if (['ArrowLeft', 'ArrowUp', 'PageUp'].includes(e.key)) show(i - 1);
+  else if (e.key === 'Home') show(0);
+  else if (e.key === 'End') show(slides.length - 1);
+  else if (e.key === 'n' || e.key === 'N') notes.style.display = notes.style.display === 'block' ? 'none' : 'block';
+  else if (e.key === 'f' || e.key === 'F') document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen();
+});
+addEventListener('click', e => { if (!notes.contains(e.target)) show(e.clientX < innerWidth / 3 ? i - 1 : i + 1); });
+fit(); show(i);
+</script>
+</body>
+</html>

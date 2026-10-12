@@ -1,0 +1,30 @@
+<section id="s6-quota" data-section="額度危機與上線" data-transition="fade" style="background:#1F3A2B;color:#F6F4EC;font-family:'Noto Sans TC', Arial, sans-serif;padding:128px 128px 160px;display:flex;flex-direction:column;gap:48px">
+<div style="display:flex;flex-direction:column;gap:16px">
+<p style="font-size:28px;font-weight:700;color:#F2A65A;letter-spacing:2px">步驟 6</p>
+<h2 style="font-family:'Noto Serif TC', Georgia, serif;font-size:64px;font-weight:900">免費額度爆了：找來第二個 AI</h2>
+</div>
+<p style="font-size:30px;font-family:'Courier New', monospace;color:#F2A65A;background:#2A4A37;border-radius:12px;padding:20px 28px">429 generate_content_free_tier_input_tokens</p>
+<div style="display:flex;gap:24px">
+<div style="flex:1;display:flex;flex-direction:column;gap:12px;border-top:4px solid #5E7D68;padding:24px 0 0 0">
+<p style="font-size:24px;font-weight:700;color:#9DB5A3">7/18 20:53</p>
+<p style="font-size:28px;line-height:1.5">加上「等一下再重試」</p>
+<p style="font-size:24px;color:#9DB5A3">沒用</p>
+</div>
+<div style="flex:1;display:flex;flex-direction:column;gap:12px;border-top:4px solid #5E7D68;padding:24px 0 0 0">
+<p style="font-size:24px;font-weight:700;color:#9DB5A3">7/18 20:56</p>
+<p style="font-size:28px;line-height:1.5">換成額度較寬的 flash-lite</p>
+<p style="font-size:24px;color:#9DB5A3">還是沒用，卡了兩天</p>
+</div>
+<div style="flex:1;display:flex;flex-direction:column;gap:12px;border-top:4px solid #F2A65A;padding:24px 0 0 0">
+<p style="font-size:24px;font-weight:700;color:#F2A65A">7/20 15:18 解決</p>
+<p style="font-size:28px;line-height:1.5">寫答案改用 <b>Groq</b>（Llama 3.3 70B）</p>
+<p style="font-size:24px;color:#C9D8CC">一樣免費、不用綁卡</p>
+</div>
+</div>
+<div style="display:flex;gap:24px">
+<p style="flex:1;font-size:30px;background:#2A4A37;border-radius:14px;padding:24px 28px"><b style="color:#F2A65A">Gemini</b>：負責「找資料」（向量）</p>
+<p style="flex:1;font-size:30px;background:#2A4A37;border-radius:14px;padding:24px 28px"><b style="color:#F2A65A">Groq</b>：負責「寫答案」</p>
+</div>
+<p style="position:absolute;left:128px;bottom:64px;width:1664px;font-size:24px;color:#9DB5A3">09</p>
+<aside>這是整個過程最卡的一段。原本找資料和寫答案都用 Gemini，結果一測試就跳出 429 錯誤，意思是免費的「生成」額度用完了。7 月 18 日晚上我們先讓程式遇到錯誤時等一下再重試，沒用；三分鐘後換成號稱額度比較寬的 flash-lite 模型，還是沒用，而且一卡就是兩天，不是隔天就會恢復。Claude 給了幾個選項：開 Google 付費、改用付費的 OpenAI 或 Claude，或是改用免費的 Groq。我們預算只有六千元，所以選了 Groq。7 月 20 日下午改好：找資料留在 Gemini，因為那部分額度很夠；寫答案交給 Groq 上的 Llama 3.3 模型。分工之後就沒再卡過。這就是你們記得的「第二個 LLM」。後來 7 月 20 日晚上又加了第三個服務 Tavily，讓 AI 也能上網查最新資料。</aside>
+</section>
