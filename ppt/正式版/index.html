@@ -4,6 +4,11 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>溫室植栽專家系統是怎麼做出來的</title>
+<script>
+  // The site strips trailing slashes (/ppt/正式版/ → /ppt/正式版), which breaks relative image paths.
+  if (location.protocol !== 'file:' && !/\/$|\.html$/.test(location.pathname))
+    document.write('<base href="' + location.pathname + '/">');
+</script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@600;900&display=swap">
 <style>
