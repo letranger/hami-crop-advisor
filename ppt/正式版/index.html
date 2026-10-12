@@ -9,8 +9,8 @@
 <style>
   html, body { margin: 0; background: #111; height: 100%; overflow: hidden; }
   #stage { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; transform-origin: 0 0; }
-  section { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; box-sizing: border-box; overflow: hidden; display: none; }
-  section.active { display: flex; }
+  section { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; box-sizing: border-box; overflow: hidden; }
+  section:not(.active) { display: none !important; }
   section *, section *::before, section *::after { box-sizing: border-box; }
   section h1, section h2, section h3, section p, section ul, section ol { margin: 0; }
   section ul, section ol { padding-left: 1.2em; }
@@ -29,7 +29,7 @@
     @page { size: 1920px 1080px; margin: 0; }
     html, body { overflow: visible; height: auto; background: none; }
     #stage { position: static; transform: none !important; width: auto; height: auto; }
-    section { position: relative; display: flex !important; page-break-after: always; break-after: page; }
+    section, section:not(.active) { position: relative; display: flex !important; page-break-after: always; break-after: page; }
     #notes, #hint { display: none !important; }
   }
 </style>
