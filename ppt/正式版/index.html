@@ -500,7 +500,7 @@
 <p style="position:absolute;left:128px;bottom:64px;width:1664px;font-size:24px;color:#6A776D">技術細節 5 / 12 · 到今天 43 筆提交</p>
 <aside>之後每次修改也是一樣的動作。這是 GitHub 的 Commits 頁面，每一筆都有一句中文說明，三個月後回頭看也看得懂。作者寫著 letranger and claude，因為 Claude Code 會把自己也簽上去。注意每筆後面的綠色勾勾，那是 Vercel 回報這一筆已經成功部署，如果是紅叉就代表上線失敗，要回去看錯誤。所以整個流程就是：改好程式、commit 加 push 到 main 分支、Vercel 自動偵測到，30 到 60 秒後網站就是新版，農友手機重新整理就看到了。這個「推上去就自動上線」是下一張要講的 Vercel 設定。</aside>
 </section>
-<section id="t5-vercel" data-transition="fade" style="background:#F6F4EC;color:#1F3A2B;font-family:'Noto Sans TC', Arial, sans-serif;padding:128px 128px 160px;display:flex;flex-direction:column;gap:36px">
+<section id="t5-vercel" data-transition="fade" style="background:#F6F4EC;color:#1F3A2B;font-family:'Noto Sans TC', Arial, sans-serif;padding:112px 128px 160px;display:flex;flex-direction:column;gap:28px">
 <div style="display:flex;flex-direction:column;gap:16px">
 <p style="font-size:28px;font-weight:700;color:#A8521A;letter-spacing:2px">架網站 ① GitHub 的程式碼怎麼變成網址</p>
 <h2 style="font-family:'Noto Serif TC', Georgia, serif;font-size:64px;font-weight:900">Vercel：用 GitHub 帳號登入，匯入儲存庫，按 Deploy</h2>
@@ -525,7 +525,7 @@
 </div>
 <div style="display:flex;gap:36px;align-items:flex-start">
 <div style="width:1000px;display:flex;flex-direction:column;gap:10px">
-<img src="images/vercel_deploys.png" alt="Vercel Deployments 頁面：每一筆部署對應一個 GitHub commit，狀態 Ready，分支 main，最上面一筆標 Production" style="width:1000px;height:400px;object-fit:contain;border:2px solid #D8E2D3;border-radius:16px;background:#FFFFFF">
+<img src="images/vercel_deploys.png" alt="Vercel Deployments 頁面：每一筆部署對應一個 GitHub commit，狀態 Ready，分支 main，最上面一筆標 Production" style="width:1000px;height:340px;object-fit:contain;border:2px solid #D8E2D3;border-radius:16px;background:#FFFFFF">
 <p style="font-size:24px;color:#6A776D">Deployments 頁：一筆 commit ＝ 一次部署，建置 7～14 秒，最新一筆就是正式站</p>
 </div>
 <div style="flex:1;display:flex;flex-direction:column;gap:18px">
@@ -819,6 +819,7 @@
 <p style="font-size:32px;color:#F2A65A">謝謝聆聽 · hami-crop-advisor.vercel.app</p>
 <aside>最後總結。回頭看，這八個步驟其實是一個循環：想清楚、做出來、放上去、卡住就問、修好再繼續。三個心得：第一，不用先會寫程式，但要能把問題說清楚。第二，卡住時把畫面截圖給 AI 看，比自己亂猜快很多。第三，免費服務可以混搭，一家額度不夠，就讓兩家分工。網址在這裡，歡迎大家用手機打開試試看。謝謝。</aside>
 </section>
+
 
 </div>
 <div id="notes"></div>
