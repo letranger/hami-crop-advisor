@@ -356,6 +356,373 @@
 <p style="position:absolute;left:128px;bottom:64px;width:1664px;font-size:24px;color:#6A776D">11</p>
 <aside>整理一下，最後總共申請了六個服務：GitHub 存程式、Vercel 架網站、Google AI Studio 拿 Gemini 金鑰負責找資料、Groq 負責寫答案、Tavily 負責上網搜尋，還有 Upstash Redis，讓所有農友的診斷紀錄可以共享，同一個問題問過就直接用存好的答案。六個全部用免費額度，不用綁信用卡。整個系統到現在花費是零元。</aside>
 </section>
+<section id="t0-intro" data-transition="fade" style="background:#1F3A2B;color:#F6F4EC;font-family:'Noto Sans TC', Arial, sans-serif;padding:128px 128px 160px;display:flex;flex-direction:column;gap:56px">
+<div style="display:flex;flex-direction:column;gap:16px">
+<p style="font-size:28px;font-weight:700;color:#F2A65A;letter-spacing:2px">步驟 7 深入 · 技術細節</p>
+<h2 style="font-family:'Noto Serif TC', Georgia, serif;font-size:72px;font-weight:900;line-height:1.2">AI 寫好程式之後，<br>還有四件「不是寫程式」的事</h2>
+</div>
+<div style="display:flex;gap:24px">
+<div style="flex:1;background:#2A4A38;border-radius:20px;padding:36px 32px;display:flex;flex-direction:column;gap:16px">
+<p style="font-family:'Noto Serif TC', Georgia, serif;font-size:72px;font-weight:900;color:#F2A65A;line-height:1">1</p>
+<h3 style="font-size:36px;font-weight:700">拿鑰匙</h3>
+<p style="font-size:26px;line-height:1.5;color:#C9D8CC">到 Groq、Google AI Studio 申請 API 金鑰</p>
+</div>
+<div style="flex:1;background:#2A4A38;border-radius:20px;padding:36px 32px;display:flex;flex-direction:column;gap:16px">
+<p style="font-family:'Noto Serif TC', Georgia, serif;font-size:72px;font-weight:900;color:#F2A65A;line-height:1">2</p>
+<h3 style="font-size:36px;font-weight:700">存程式</h3>
+<p style="font-size:26px;line-height:1.5;color:#C9D8CC">把程式碼送上 GitHub，每次修改留紀錄</p>
+</div>
+<div style="flex:1;background:#2A4A38;border-radius:20px;padding:36px 32px;display:flex;flex-direction:column;gap:16px">
+<p style="font-family:'Noto Serif TC', Georgia, serif;font-size:72px;font-weight:900;color:#F2A65A;line-height:1">3</p>
+<h3 style="font-size:36px;font-weight:700">架網站</h3>
+<p style="font-size:26px;line-height:1.5;color:#C9D8CC">Vercel 讀 GitHub 的程式碼，自動部署成網址</p>
+</div>
+<div style="flex:1;background:#2A4A38;border-radius:20px;padding:36px 32px;display:flex;flex-direction:column;gap:16px">
+<p style="font-family:'Noto Serif TC', Georgia, serif;font-size:72px;font-weight:900;color:#F2A65A;line-height:1">4</p>
+<h3 style="font-size:36px;font-weight:700">藏鑰匙</h3>
+<p style="font-size:26px;line-height:1.5;color:#C9D8CC">金鑰只放 Vercel 環境變數，程式碼裡沒有</p>
+</div>
+</div>
+<p style="font-size:30px;line-height:1.5;color:#C9D8CC">接下來十一張，每一件事都用真實的設定畫面說明，照著做就能複製到自己的專案。</p>
+<p style="position:absolute;left:128px;bottom:64px;width:1664px;font-size:24px;color:#9DB5A3">技術細節 1 / 12</p>
+<aside>前面講的是整個故事，接下來這一段是技術細節。Claude 把程式寫好之後，還有四件事不是寫程式，但沒做就上不了線：第一，到各家 AI 公司拿 API 金鑰，也就是鑰匙；第二，把程式碼送到 GitHub 保存；第三，讓 Vercel 讀 GitHub 的程式碼自動架成網站；第四，也是最重要的，把鑰匙藏好，不能寫在程式裡。接下來每一件事都用我們實際的設定畫面來講。</aside>
+</section>
+<section id="t1-groq" data-transition="fade" style="background:#F6F4EC;color:#1F3A2B;font-family:'Noto Sans TC', Arial, sans-serif;padding:128px 128px 160px;display:flex;flex-direction:column;gap:40px">
+<div style="display:flex;flex-direction:column;gap:16px">
+<p style="font-size:28px;font-weight:700;color:#A8521A;letter-spacing:2px">拿鑰匙 ① Groq（負責寫答案）</p>
+<h2 style="font-family:'Noto Serif TC', Georgia, serif;font-size:64px;font-weight:900">console.groq.com/keys：登入、按一顆鈕、複製</h2>
+</div>
+<div style="display:flex;gap:48px;align-items:flex-start">
+<img src="images/groq_keys.png" alt="Groq 主控台 API Keys 頁面，顯示名為雲林智慧農業App 的金鑰" style="width:1060px;height:258px;object-fit:contain;border:2px solid #D8E2D3;border-radius:16px;background:#FFFFFF">
+<div style="flex:1;display:flex;flex-direction:column;gap:20px">
+<div style="display:flex;gap:16px;align-items:flex-start"><p style="font-size:30px;font-weight:900;color:#2F7A4D;width:40px">1</p><p style="flex:1;font-size:28px;line-height:1.4">用 Google 帳號登入，不用填信用卡</p></div>
+<div style="display:flex;gap:16px;align-items:flex-start"><p style="font-size:30px;font-weight:900;color:#2F7A4D;width:40px">2</p><p style="flex:1;font-size:28px;line-height:1.4">左上 API Keys → 右上 <b>Create API Key</b></p></div>
+<div style="display:flex;gap:16px;align-items:flex-start"><p style="font-size:30px;font-weight:900;color:#2F7A4D;width:40px">3</p><p style="flex:1;font-size:28px;line-height:1.4">取名字（我們叫「雲林智慧農業App」）</p></div>
+<div style="display:flex;gap:16px;align-items:flex-start"><p style="font-size:30px;font-weight:900;color:#2F7A4D;width:40px">4</p><p style="flex:1;font-size:28px;line-height:1.4">複製 <b>gsk_</b> 開頭那串，<span style="color:#A8521A;font-weight:700">只會顯示這一次</span></p></div>
+</div>
+</div>
+<div style="background:#E7EEE3;border-radius:16px;padding:24px 36px;display:flex;gap:40px;align-items:center">
+<p style="font-size:28px;font-weight:700;width:260px">畫面上看到的</p>
+<p style="flex:1;font-size:26px;line-height:1.5;color:#4A5A4F">金鑰事後只顯示頭尾（gsk_…ee2y），網站自己也不再給你看全文；有「到期日」，到期要重新建一把並更新 Vercel 設定。</p>
+</div>
+<p style="position:absolute;left:128px;bottom:64px;width:1664px;font-size:24px;color:#7A877D">技術細節 2 / 12 · 金鑰名稱 GROQ_API_KEY</p>
+<aside>第一把鑰匙是 Groq，負責寫答案的語言模型。到 console.groq.com，用 Google 帳號登入，不用信用卡。進到 API Keys 頁面，按右上角 Create API Key，給它取個名字，我們叫雲林智慧農業App。按下去會顯示一串 gsk 開頭的文字，這就是鑰匙，而且只顯示這一次，關掉視窗就再也看不到全文，所以要馬上複製貼到 Vercel。畫面上可以看到我們這把是 7 月 20 日建的，有到期日，到期要重建一把。</aside>
+</section>
+<section id="t2-gemini" data-transition="fade" style="background:#E7EEE3;color:#1F3A2B;font-family:'Noto Sans TC', Arial, sans-serif;padding:128px 128px 160px;display:flex;flex-direction:column;gap:40px">
+<div style="display:flex;flex-direction:column;gap:16px">
+<p style="font-size:28px;font-weight:700;color:#A8521A;letter-spacing:2px">拿鑰匙 ② Google AI Studio（負責找資料）</p>
+<h2 style="font-family:'Noto Serif TC', Georgia, serif;font-size:64px;font-weight:900">aistudio.google.com/api-keys：每家長得差不多</h2>
+</div>
+<div style="display:flex;gap:40px;align-items:flex-start">
+<div style="flex:1;display:flex;flex-direction:column;gap:20px">
+<img src="images/aistudio_keys.png" alt="Google AI Studio API Keys 清單，第一列是 7 月 18 日建立的智慧農業App 金鑰" style="width:1000px;height:217px;object-fit:contain;border:2px solid #D8E2D3;border-radius:16px;background:#FFFFFF">
+<p style="font-size:24px;color:#6A776D">金鑰清單：每把只露出最後四碼，旁邊標 Free tier</p>
+</div>
+<div style="width:560px;display:flex;flex-direction:column;gap:20px">
+<img src="images/aistudio_create.png" alt="AI Studio 建立新金鑰的對話框：取名、選專案、Create key" style="width:560px;height:350px;object-fit:contain;border:2px solid #D8E2D3;border-radius:16px;background:#FFFFFF">
+<p style="font-size:24px;color:#6A776D">Create API key → 取名、選專案 → Create key</p>
+</div>
+</div>
+<div style="display:flex;gap:24px">
+<div style="flex:1;background:#FFFDF7;border-radius:16px;padding:24px 32px;display:flex;flex-direction:column;gap:8px">
+<h3 style="font-size:30px;font-weight:700">同一套流程</h3>
+<p style="font-size:26px;line-height:1.5;color:#4A5A4F">登入 → Create → 取名 → 複製。Tavily、Upstash 也一樣，會一家就會全部。</p>
+</div>
+<div style="flex:1;background:#FFFDF7;border-radius:16px;padding:24px 32px;display:flex;flex-direction:column;gap:8px">
+<h3 style="font-size:30px;font-weight:700">分開命名</h3>
+<p style="font-size:26px;line-height:1.5;color:#4A5A4F">一個專案一把鑰匙、名字寫清楚用途，外洩時只要刪掉那一把。</p>
+</div>
+</div>
+<p style="position:absolute;left:128px;bottom:64px;width:1664px;font-size:24px;color:#6A776D">技術細節 3 / 12 · 金鑰名稱 GEMINI_API_KEY</p>
+<aside>第二把鑰匙是 Google AI Studio 的 Gemini，負責把手冊和問題變成向量來找資料。網址 aistudio.google.com/api-keys，流程和 Groq 幾乎一樣：登入 Google、按 Create API key、取名、選專案、Create key，然後複製。左邊是我們帳號的金鑰清單，第一列就是 7 月 18 日建的「智慧農業App」，可以看到每把金鑰只露出最後四碼，Billing Tier 是 Free tier。兩個提醒：第一，各家流程都一樣，學會一家就全會了；第二，一個專案建一把，名字寫清楚，萬一外洩只要刪那一把。</aside>
+</section>
+<section id="t3-github" data-transition="fade" style="background:#F6F4EC;color:#1F3A2B;font-family:'Noto Sans TC', Arial, sans-serif;padding:128px 128px 160px;display:flex;flex-direction:column;gap:40px">
+<div style="display:flex;flex-direction:column;gap:16px">
+<p style="font-size:28px;font-weight:700;color:#A8521A;letter-spacing:2px">存程式 ① 送上 GitHub</p>
+<h2 style="font-family:'Noto Serif TC', Georgia, serif;font-size:64px;font-weight:900">五行指令，但我們是用一句話叫 Claude 做</h2>
+</div>
+<div style="display:flex;gap:40px;align-items:flex-start">
+<div style="width:760px;display:flex;flex-direction:column;gap:20px">
+<div style="background:#1F3A2B;border-radius:16px;padding:28px 32px;display:flex;flex-direction:column;gap:10px;font-family:Menlo, Courier, monospace">
+<p style="font-size:26px;color:#9DB5A3">git init</p>
+<p style="font-size:26px;color:#9DB5A3">git add .</p>
+<p style="font-size:26px;color:#9DB5A3">git commit -m "初始化 PWA 雛形"</p>
+<p style="font-size:26px;color:#F6F4EC">git remote add origin https://github.com/letranger/hami-crop-advisor.git</p>
+<p style="font-size:26px;color:#F2A65A">git push -u origin main</p>
+</div>
+<div style="background:#E7EEE3;border-radius:16px;padding:24px 32px;display:flex;flex-direction:column;gap:8px">
+<p style="font-size:26px;line-height:1.5;color:#4A5A4F">實際對 Claude Code 說的是：<b style="color:#1F3A2B">「幫我 commit 並 push 到 GitHub」</b>。指令是它打的，我們只看結果。</p>
+</div>
+</div>
+<div style="flex:1;display:flex;flex-direction:column;gap:20px">
+<img src="images/github_repo.png" alt="GitHub 上的 hami-crop-advisor 儲存庫首頁，右側 About 連到 hami-crop-advisor.vercel.app" style="width:864px;height:378px;object-fit:contain;border:2px solid #D8E2D3;border-radius:16px;background:#FFFFFF">
+<p style="font-size:24px;color:#6A776D">github.com/letranger/hami-crop-advisor：公開儲存庫，右側 About 直接連到正式網站</p>
+</div>
+</div>
+<div style="display:flex;gap:24px">
+<div style="flex:1;background:#FFFDF7;border:2px solid #D8E2D3;border-radius:16px;padding:20px 28px"><p style="font-size:26px;line-height:1.5"><b>事前</b>：到 github.com 註冊、New repository 建一個空的，取好名字</p></div>
+<div style="flex:1;background:#FFFDF7;border:2px solid #D8E2D3;border-radius:16px;padding:20px 28px"><p style="font-size:26px;line-height:1.5"><b>卡關</b>：第一次 push 會問密碼，但 GitHub 已不收密碼，要用 <b>gh auth login</b> 登入一次</p></div>
+</div>
+<p style="position:absolute;left:128px;bottom:64px;width:1664px;font-size:24px;color:#7A877D">技術細節 4 / 12</p>
+<aside>第二件事，把程式送到 GitHub。技術上就是左邊這五行：init 建倉庫、add 把檔案加進去、commit 寫一句說明、remote add 指定 GitHub 上的網址、push 推上去。但我們沒有自己打，是對 Claude Code 說「幫我 commit 並 push 到 GitHub」，它會自己打指令，我們看結果就好。事前要做的只有到 github.com 註冊，然後 New repository 建一個空的倉庫。我們實際卡過一關：第一次 push 會問密碼，但 GitHub 現在不收密碼了，要用 gh auth login 用瀏覽器登入一次，之後就都不用再問。右邊就是倉庫在 GitHub 上的樣子。</aside>
+</section>
+<section id="t4-commits" data-transition="fade" style="background:#E7EEE3;color:#1F3A2B;font-family:'Noto Sans TC', Arial, sans-serif;padding:128px 128px 160px;display:flex;flex-direction:column;gap:40px">
+<div style="display:flex;flex-direction:column;gap:16px">
+<p style="font-size:28px;font-weight:700;color:#A8521A;letter-spacing:2px">存程式 ② 之後每一次修改</p>
+<h2 style="font-family:'Noto Serif TC', Georgia, serif;font-size:64px;font-weight:900">每次 push 都是一筆紀錄，也是一次自動上線</h2>
+</div>
+<div style="display:flex;gap:40px;align-items:flex-start">
+<img src="images/github_commits.png" alt="GitHub Commits 頁面，列出 10 月 12 日由 letranger 和 claude 共同提交的紀錄，每筆都有綠色勾勾" style="width:1040px;height:375px;object-fit:contain;border:2px solid #D8E2D3;border-radius:16px;background:#FFFFFF">
+<div style="flex:1;display:flex;flex-direction:column;gap:20px">
+<div style="background:#FFFDF7;border-radius:16px;padding:24px 28px;display:flex;flex-direction:column;gap:8px">
+<h3 style="font-size:30px;font-weight:700">中文說明</h3>
+<p style="font-size:26px;line-height:1.5;color:#4A5A4F">每筆 commit 寫一句做了什麼，三個月後回頭看得懂</p>
+</div>
+<div style="background:#FFFDF7;border-radius:16px;padding:24px 28px;display:flex;flex-direction:column;gap:8px">
+<h3 style="font-size:30px;font-weight:700">兩個作者</h3>
+<p style="font-size:26px;line-height:1.5;color:#4A5A4F">「letranger and claude」：Claude Code 會把自己也簽上去</p>
+</div>
+<div style="background:#FFFDF7;border-radius:16px;padding:24px 28px;display:flex;flex-direction:column;gap:8px">
+<h3 style="font-size:30px;font-weight:700">綠色勾勾</h3>
+<p style="font-size:26px;line-height:1.5;color:#4A5A4F">Vercel 回報這筆已成功部署；紅叉就是上線失敗</p>
+</div>
+</div>
+</div>
+<div style="display:flex;align-items:center;gap:20px;background:#1F3A2B;border-radius:16px;padding:24px 36px">
+<p style="font-size:28px;font-weight:700;color:#F6F4EC">改好程式</p>
+<x-shape kind="arrow-right" style="width:44px;height:24px;background:#9DB5A3"></x-shape>
+<p style="font-size:28px;font-weight:700;color:#F6F4EC">commit ＋ push 到 main</p>
+<x-shape kind="arrow-right" style="width:44px;height:24px;background:#9DB5A3"></x-shape>
+<p style="font-size:28px;font-weight:700;color:#F2A65A">Vercel 偵測到 → 30～60 秒後網站更新</p>
+<x-shape kind="arrow-right" style="width:44px;height:24px;background:#9DB5A3"></x-shape>
+<p style="font-size:28px;font-weight:700;color:#F6F4EC">手機重新整理就是新版</p>
+</div>
+<p style="position:absolute;left:128px;bottom:64px;width:1664px;font-size:24px;color:#6A776D">技術細節 5 / 12 · 到今天 43 筆提交</p>
+<aside>之後每次修改也是一樣的動作。這是 GitHub 的 Commits 頁面，每一筆都有一句中文說明，三個月後回頭看也看得懂。作者寫著 letranger and claude，因為 Claude Code 會把自己也簽上去。注意每筆後面的綠色勾勾，那是 Vercel 回報這一筆已經成功部署，如果是紅叉就代表上線失敗，要回去看錯誤。所以整個流程就是：改好程式、commit 加 push 到 main 分支、Vercel 自動偵測到，30 到 60 秒後網站就是新版，農友手機重新整理就看到了。這個「推上去就自動上線」是下一張要講的 Vercel 設定。</aside>
+</section>
+<section id="t5-vercel" data-transition="fade" style="background:#F6F4EC;color:#1F3A2B;font-family:'Noto Sans TC', Arial, sans-serif;padding:128px 128px 160px;display:flex;flex-direction:column;gap:36px">
+<div style="display:flex;flex-direction:column;gap:16px">
+<p style="font-size:28px;font-weight:700;color:#A8521A;letter-spacing:2px">架網站 ① GitHub 的程式碼怎麼變成網址</p>
+<h2 style="font-family:'Noto Serif TC', Georgia, serif;font-size:64px;font-weight:900">Vercel：用 GitHub 帳號登入，匯入儲存庫，按 Deploy</h2>
+</div>
+<div style="display:flex;gap:20px;align-items:stretch">
+<div style="flex:1;background:#FFFDF7;border:2px solid #D8E2D3;border-radius:20px;padding:22px 24px;display:flex;flex-direction:column;gap:8px">
+<p style="font-size:28px;font-weight:900;color:#2F7A4D">1 · 登入</p>
+<p style="font-size:24px;line-height:1.45;color:#4A5A4F">vercel.com → <b>Continue with GitHub</b>，Vercel 才看得到你的儲存庫</p>
+</div>
+<div style="flex:1;background:#FFFDF7;border:2px solid #D8E2D3;border-radius:20px;padding:22px 24px;display:flex;flex-direction:column;gap:8px">
+<p style="font-size:28px;font-weight:900;color:#2F7A4D">2 · 匯入</p>
+<p style="font-size:24px;line-height:1.45;color:#4A5A4F"><b>Add New → Project</b>，找到 hami-crop-advisor 按 Import</p>
+</div>
+<div style="flex:1;background:#FFFDF7;border:2px solid #D8E2D3;border-radius:20px;padding:22px 24px;display:flex;flex-direction:column;gap:8px">
+<p style="font-size:28px;font-weight:900;color:#2F7A4D">3 · 設定</p>
+<p style="font-size:24px;line-height:1.45;color:#4A5A4F">Framework 選 <b>Other</b>（純靜態＋api/）；Root Directory 維持根目錄</p>
+</div>
+<div style="flex:1;background:#1F3A2B;border:2px solid #1F3A2B;border-radius:20px;padding:22px 24px;display:flex;flex-direction:column;gap:8px">
+<p style="font-size:28px;font-weight:900;color:#F2A65A">4 · Deploy</p>
+<p style="font-size:24px;line-height:1.45;color:#C9D8CC">一分鐘後得到 <b style="color:#F6F4EC">hami-crop-advisor.vercel.app</b></p>
+</div>
+</div>
+<div style="display:flex;gap:36px;align-items:flex-start">
+<div style="width:1000px;display:flex;flex-direction:column;gap:10px">
+<img src="images/vercel_deploys.png" alt="Vercel Deployments 頁面：每一筆部署對應一個 GitHub commit，狀態 Ready，分支 main，最上面一筆標 Production" style="width:1000px;height:400px;object-fit:contain;border:2px solid #D8E2D3;border-radius:16px;background:#FFFFFF">
+<p style="font-size:24px;color:#6A776D">Deployments 頁：一筆 commit ＝ 一次部署，建置 7～14 秒，最新一筆就是正式站</p>
+</div>
+<div style="flex:1;display:flex;flex-direction:column;gap:18px">
+<div style="background:#E7EEE3;border-radius:16px;padding:22px 28px;display:flex;flex-direction:column;gap:10px">
+<h3 style="font-size:29px;font-weight:700">Vercel 怎麼知道程式改了？</h3>
+<p style="font-size:25px;line-height:1.5;color:#4A5A4F">匯入時 Vercel 在 GitHub 裝一個「通知」：main 一有新 commit 就重新部署。右邊每一列的 commit 代號和 GitHub 上的一模一樣。</p>
+</div>
+<div style="background:#E7EEE3;border-radius:16px;padding:22px 28px;display:flex;flex-direction:column;gap:10px">
+<h3 style="font-size:29px;font-weight:700">專案裡的 vercel.json</h3>
+<p style="font-size:25px;line-height:1.5;color:#4A5A4F">只做兩件事：網址去掉 .html；執行 api/ 時把 kb.json（知識庫）一起帶著。</p>
+</div>
+</div>
+</div>
+<p style="position:absolute;left:128px;bottom:64px;width:1664px;font-size:24px;color:#7A877D">技術細節 6 / 12</p>
+<aside>第三件事，把 GitHub 上的程式碼變成一個網址，這是 Vercel 的工作。四步：到 vercel.com 用 GitHub 帳號登入，一定要用 GitHub 登入，Vercel 才看得到你的儲存庫；Add New、Project，清單裡找到 hami-crop-advisor 按 Import；設定頁 Framework 選 Other，因為我們是純靜態網頁加 api 資料夾，不是什麼框架；最後按 Deploy，一分鐘後就拿到 hami-crop-advisor.vercel.app 這個網址。下面是我們專案真實的 Deployments 頁面，每一列就是一次部署，對應 GitHub 上的一筆 commit，代號一模一樣，建置只要 7 到 14 秒，最上面標 Production 的就是現在農友用的版本。匯入時 Vercel 會在 GitHub 裝一個通知，之後 main 分支一有新 commit 就自動重新部署，這就是前一張綠色勾勾的來源。專案裡的 vercel.json 很短，只有兩個設定：網址去掉 .html，還有執行 api 時要把知識庫 kb.json 一起帶著。</aside>
+</section>
+<section id="t6-env" data-transition="fade" style="background:#E7EEE3;color:#1F3A2B;font-family:'Noto Sans TC', Arial, sans-serif;padding:128px 128px 160px;display:flex;flex-direction:column;gap:36px">
+<div style="display:flex;flex-direction:column;gap:16px">
+<p style="font-size:28px;font-weight:700;color:#A8521A;letter-spacing:2px">架網站 ② 把鑰匙交給 Vercel</p>
+<h2 style="font-family:'Noto Serif TC', Georgia, serif;font-size:64px;font-weight:900">Settings → Environment Variables：名字配鑰匙，存檔</h2>
+</div>
+<div style="display:flex;gap:36px;align-items:flex-start">
+<div style="width:1000px;display:flex;flex-direction:column;gap:14px">
+<img src="images/vercel_env_top.png" alt="Vercel 專案設定頁，左欄選 Environment Variables，右上有 Add Environment Variable 按鈕，清單列出 Upstash 自動注入的變數" style="width:1000px;height:360px;object-fit:contain;border:2px solid #D8E2D3;border-radius:16px;background:#FFFFFF">
+<img src="images/vercel_env_keys.png" alt="清單往下：TAVILY_API_KEY、GROQ_API_KEY、GEMINI_API_KEY 三列，分別於 7 月 21、20、18 日加入" style="width:1000px;height:234px;object-fit:contain;border:2px solid #D8E2D3;border-radius:16px;background:#FFFFFF">
+</div>
+<div style="flex:1;display:flex;flex-direction:column;gap:18px">
+<div style="display:flex;gap:16px;align-items:flex-start"><p style="font-size:30px;font-weight:900;color:#2F7A4D;width:40px">1</p><p style="flex:1;font-size:27px;line-height:1.4">進專案 → <b>Settings</b> → 左欄 <b>Environment Variables</b></p></div>
+<div style="display:flex;gap:16px;align-items:flex-start"><p style="font-size:30px;font-weight:900;color:#2F7A4D;width:40px">2</p><p style="flex:1;font-size:27px;line-height:1.4">右上 <b>Add Environment Variable</b>，Key 填程式約定的名字（如 GROQ_API_KEY）</p></div>
+<div style="display:flex;gap:16px;align-items:flex-start"><p style="font-size:30px;font-weight:900;color:#2F7A4D;width:40px">3</p><p style="flex:1;font-size:27px;line-height:1.4">Value 貼上剛複製的金鑰 → Save。存進去後畫面只剩鎖頭，看不到值</p></div>
+<div style="display:flex;gap:16px;align-items:flex-start"><p style="font-size:30px;font-weight:900;color:#2F7A4D;width:40px">4</p><p style="flex:1;font-size:27px;line-height:1.4">到 Deployments <b>Redeploy</b> 一次，新變數才生效</p></div>
+<div style="background:#FFFDF7;border-radius:16px;padding:20px 24px"><p style="font-size:25px;line-height:1.5;color:#4A5A4F">上半部五個 UPSTASH_… 是 Storage → 建 Upstash Redis → 連結專案時自動塞進來的；我們手填的只有下半部三把，日期就是申請金鑰的那幾天。</p></div>
+</div>
+</div>
+<p style="position:absolute;left:128px;bottom:64px;width:1664px;font-size:24px;color:#6A776D">技術細節 7 / 12 · 名字要和 .env.example 一模一樣</p>
+<aside>鑰匙拿到了、網站架好了，接下來把鑰匙交給 Vercel。這是我們專案的真實設定頁：進專案後點 Settings，左欄選 Environment Variables。每一列是一組名字配鑰匙：按右上 Add Environment Variable，Key 填程式裡約定好的名字，例如 GROQ_API_KEY；Value 貼上剛才複製的金鑰；按 Save。存進去之後畫面只剩一個鎖頭，連自己都看不到值，這是正常的。存完要到 Deployments 按一次 Redeploy，新的變數才會生效，這是我們實際忘記過的一步。清單上半部五個 UPSTASH 開頭的不是手填的，是在 Storage 建立 Redis 並連結專案時 Vercel 自動塞進來的；我們手填的只有下半部三把，Gemini 7 月 18、Groq 7 月 20、Tavily 7 月 21，正好對應前面申請金鑰的日期。重點是名字要和專案裡 .env.example 寫的一模一樣，差一個字母程式就讀不到。</aside>
+</section>
+<section id="t7-hide" data-transition="fade" style="background:#F6F4EC;color:#1F3A2B;font-family:'Noto Sans TC', Arial, sans-serif;padding:128px 128px 160px;display:flex;flex-direction:column;gap:40px">
+<div style="display:flex;flex-direction:column;gap:16px">
+<p style="font-size:28px;font-weight:700;color:#A8521A;letter-spacing:2px">藏鑰匙 ① 程式碼裡沒有鑰匙，鑰匙只在 Vercel</p>
+<h2 style="font-family:'Noto Serif TC', Georgia, serif;font-size:64px;font-weight:900">手機只跟自己的後端講話，後端才拿鑰匙去找 AI</h2>
+</div>
+<div style="display:flex;align-items:center;gap:20px">
+<div style="flex:1;background:#FFFDF7;border:2px solid #D8E2D3;border-radius:20px;padding:28px;display:flex;flex-direction:column;gap:10px">
+<x-icon name="Smartphone" style="color:#2F7A4D;width:52px;height:52px"></x-icon>
+<h3 style="font-size:32px;font-weight:700">農友手機（app.js）</h3>
+<p style="font-size:24px;line-height:1.5;color:#4A5A4F;font-family:Menlo, Courier, monospace">fetch('/api/ask', {question})</p>
+<p style="font-size:24px;line-height:1.5;color:#4A5A4F">看得到原始碼，但裡面<b>沒有任何金鑰</b></p>
+</div>
+<x-shape kind="arrow-right" style="width:56px;height:32px;background:#9DB5A3"></x-shape>
+<div style="flex:1;background:#1F3A2B;border-radius:20px;padding:28px;display:flex;flex-direction:column;gap:10px">
+<x-icon name="Lock" style="color:#F2A65A;width:52px;height:52px"></x-icon>
+<h3 style="font-size:32px;font-weight:700;color:#F6F4EC">Vercel 後端（api/_rag.js）</h3>
+<p style="font-size:24px;line-height:1.5;color:#C9D8CC;font-family:Menlo, Courier, monospace">process.env.GROQ_API_KEY</p>
+<p style="font-size:24px;line-height:1.5;color:#C9D8CC">執行時才從環境變數讀鑰匙，外人看不到</p>
+</div>
+<x-shape kind="arrow-right" style="width:56px;height:32px;background:#9DB5A3"></x-shape>
+<div style="flex:1;background:#FFFDF7;border:2px solid #D8E2D3;border-radius:20px;padding:28px;display:flex;flex-direction:column;gap:10px">
+<x-icon name="Sparkles" style="color:#2F7A4D;width:52px;height:52px"></x-icon>
+<h3 style="font-size:32px;font-weight:700">Groq / Gemini</h3>
+<p style="font-size:24px;line-height:1.5;color:#4A5A4F;font-family:Menlo, Courier, monospace">Authorization: Bearer gsk_…</p>
+<p style="font-size:24px;line-height:1.5;color:#4A5A4F">只有後端對 AI 的這一段才帶鑰匙</p>
+</div>
+</div>
+<div style="display:flex;gap:24px">
+<div style="flex:1;background:#F3D9D2;border-radius:16px;padding:24px 28px;display:flex;flex-direction:column;gap:10px">
+<h3 style="font-size:28px;font-weight:700;color:#8B2E1C">✗ 錯誤寫法（在 app.js）</h3>
+<p style="font-size:24px;line-height:1.5;font-family:Menlo, Courier, monospace;color:#8B2E1C">const KEY = 'gsk_abc123…';<br>fetch('https://api.groq.com/…', {headers:{Authorization:'Bearer '+KEY}})</p>
+<p style="font-size:24px;line-height:1.4;color:#5A3A33">任何人按「檢視原始碼」就拿走你的鑰匙，額度被刷光</p>
+</div>
+<div style="flex:1;background:#D7E8DB;border-radius:16px;padding:24px 28px;display:flex;flex-direction:column;gap:10px">
+<h3 style="font-size:28px;font-weight:700;color:#1F5A34">✓ 正確寫法（在 api/_rag.js）</h3>
+<p style="font-size:24px;line-height:1.5;font-family:Menlo, Courier, monospace;color:#1F5A34">const k = process.env.GROQ_API_KEY;<br>if (!k) throw new Error('伺服器未設定 GROQ_API_KEY');</p>
+<p style="font-size:24px;line-height:1.4;color:#2F4A38">鑰匙的「值」從來不出現在程式碼，只出現在 Vercel 設定裡</p>
+</div>
+</div>
+<p style="position:absolute;left:128px;bottom:64px;width:1664px;font-size:24px;color:#7A877D">技術細節 8 / 12 · 這就是步驟 7 說「不用 GitHub Pages」的真正原因</p>
+<aside>第四件事，也是最重要的：藏鑰匙。原則一句話：手機只跟我們自己的後端講話，後端才拿鑰匙去找 AI。左邊是農友手機上跑的 app.js，它只呼叫 /api/ask，任何人都看得到這段原始碼，但裡面沒有任何金鑰。中間是 Vercel 上的後端 api/_rag.js，程式執行時才用 process.env.GROQ_API_KEY 從環境變數讀出鑰匙，外人看不到。右邊是後端對 Groq 或 Gemini 的請求，只有這一段才帶著鑰匙。下面對比錯誤和正確寫法：錯的是把 gsk 那串直接寫在 app.js 裡，任何人按檢視原始碼就拿走，額度一下就被刷光；對的是程式碼裡只寫名字 GROQ_API_KEY，值永遠只在 Vercel 設定裡。這也是前面說不能只用 GitHub Pages 的真正原因，Pages 沒有後端可以藏鑰匙。</aside>
+</section>
+<section id="t8-check" data-transition="fade" style="background:#E7EEE3;color:#1F3A2B;font-family:'Noto Sans TC', Arial, sans-serif;padding:128px 128px 160px;display:flex;flex-direction:column;gap:40px">
+<div style="display:flex;flex-direction:column;gap:16px">
+<p style="font-size:28px;font-weight:700;color:#A8521A;letter-spacing:2px">藏鑰匙 ② 三道保險，和怎麼自己檢查</p>
+<h2 style="font-family:'Noto Serif TC', Georgia, serif;font-size:64px;font-weight:900">本機用 .env、雲端用環境變數、GitHub 永遠沒有</h2>
+</div>
+<div style="display:flex;gap:24px">
+<div style="flex:1;background:#FFFDF7;border:2px solid #D8E2D3;border-radius:20px;padding:28px;display:flex;flex-direction:column;gap:12px">
+<h3 style="font-size:32px;font-weight:700">① 本機測試 → .env</h3>
+<p style="font-size:26px;line-height:1.5;color:#4A5A4F">鑰匙寫在自己電腦的 .env 檔，<b>npx vercel dev</b> 會讀它</p>
+</div>
+<div style="flex:1;background:#FFFDF7;border:2px solid #D8E2D3;border-radius:20px;padding:28px;display:flex;flex-direction:column;gap:12px">
+<h3 style="font-size:32px;font-weight:700">② .gitignore 擋住</h3>
+<p style="font-size:26px;line-height:1.5;color:#4A5A4F;font-family:Menlo, Courier, monospace">.env<br>.env.*<br>!.env.example</p>
+<p style="font-size:24px;line-height:1.4;color:#4A5A4F">git 永遠不會把 .env 送上 GitHub</p>
+</div>
+<div style="flex:1;background:#FFFDF7;border:2px solid #D8E2D3;border-radius:20px;padding:28px;display:flex;flex-direction:column;gap:12px">
+<h3 style="font-size:32px;font-weight:700">③ 只給範本</h3>
+<p style="font-size:26px;line-height:1.5;color:#4A5A4F;font-family:Menlo, Courier, monospace">GEMINI_API_KEY=<br>GROQ_API_KEY=<br>TAVILY_API_KEY=</p>
+<p style="font-size:24px;line-height:1.4;color:#4A5A4F">.env.example 進版控，只有名字沒有值</p>
+</div>
+</div>
+<div style="background:#1F3A2B;border-radius:20px;padding:28px 36px;display:flex;flex-direction:column;gap:16px">
+<h3 style="font-size:32px;font-weight:700;color:#F2A65A">上線前自己檢查（三分鐘）</h3>
+<div style="display:flex;gap:32px">
+<p style="flex:1;font-size:26px;line-height:1.5;color:#F6F4EC">在網站按右鍵「檢視原始碼」，搜尋 <b>gsk_</b> 和 <b>AIza</b>：<span style="color:#C9D8CC">要找不到</span></p>
+<p style="flex:1;font-size:26px;line-height:1.5;color:#F6F4EC">到 GitHub 儲存庫搜尋同樣兩個字串：<span style="color:#C9D8CC">要找不到</span></p>
+<p style="flex:1;font-size:26px;line-height:1.5;color:#F6F4EC">萬一真的推上去了：<span style="color:#C9D8CC">立刻到該網站刪掉那把、重建一把</span>，改歷史紀錄沒用</p>
+</div>
+</div>
+<p style="position:absolute;left:128px;bottom:64px;width:1664px;font-size:24px;color:#6A776D">技術細節 9 / 12</p>
+<aside>最後是三道保險，還有怎麼自己檢查。第一，本機測試時鑰匙寫在電腦上的 .env 檔，npx vercel dev 會自動讀它。第二，.gitignore 裡把 .env 擋住，git 永遠不會把它送上 GitHub。第三，進版控的只有 .env.example 這個範本，只有名字沒有值，讓接手的人知道要設哪幾個。上線前花三分鐘自己檢查：到網站按右鍵檢視原始碼，搜 gsk 底線和 AIza，要找不到；到 GitHub 儲存庫搜同樣的字串，也要找不到。萬一真的不小心推上去了，不要想說改歷史紀錄就好，GitHub 上的東西一推出去就當作已經被看到，正確做法是立刻到該網站刪掉那把鑰匙、重建一把、更新 Vercel。技術細節到這裡，接下來回到除錯的故事。</aside>
+</section>
+<section id="w0-tavily" data-transition="fade" style="background:#F6F4EC;color:#1F3A2B;font-family:'Noto Sans TC', Arial, sans-serif;padding:128px 128px 160px;display:flex;flex-direction:column;gap:36px">
+<div style="display:flex;flex-direction:column;gap:16px">
+<p style="font-size:28px;font-weight:700;color:#A8521A;letter-spacing:2px">上網查 ① 讓 App 能搜尋網路</p>
+<h2 style="font-family:'Noto Serif TC', Georgia, serif;font-size:64px;font-weight:900">不是用 Google 搜尋，而是用 Tavily：專門給 AI 用的搜尋 API</h2>
+</div>
+<div style="display:flex;gap:40px;align-items:flex-start">
+<div style="flex:1;display:flex;flex-direction:column;gap:16px">
+<img src="images/tavily_keys.png" alt="Tavily 後台 Overview 頁面的 API Keys 區塊，一把名為 default 的 tvly-dev 金鑰" style="width:1000px;height:147px;object-fit:contain;border:2px solid #D8E2D3;border-radius:16px;background:#FFFFFF">
+<p style="font-size:24px;color:#6A776D">app.tavily.com → Overview 往下捲就是 API Keys；按「＋」建新的，眼睛圖示看全文，複製圖示複製</p>
+<div style="display:flex;gap:20px">
+<div style="flex:1;background:#E7EEE3;border-radius:16px;padding:20px 24px;display:flex;flex-direction:column;gap:6px"><p style="font-size:26px;font-weight:700">申請</p><p style="font-size:24px;line-height:1.5;color:#4A5A4F">Google 帳號登入即可，免信用卡；金鑰 tvly- 開頭</p></div>
+<div style="flex:1;background:#E7EEE3;border-radius:16px;padding:20px 24px;display:flex;flex-direction:column;gap:6px"><p style="font-size:26px;font-weight:700">額度</p><p style="font-size:24px;line-height:1.5;color:#4A5A4F">免費每月 1,000 次搜尋；問過的問題有快取，實際用不到</p></div>
+<div style="flex:1;background:#E7EEE3;border-radius:16px;padding:20px 24px;display:flex;flex-direction:column;gap:6px"><p style="font-size:26px;font-weight:700">設定</p><p style="font-size:24px;line-height:1.5;color:#4A5A4F">Vercel 環境變數加一列 TAVILY_API_KEY，Redeploy</p></div>
+</div>
+</div>
+<div style="width:520px;background:#1F3A2B;border-radius:20px;padding:28px 32px;display:flex;flex-direction:column;gap:14px">
+<h3 style="font-size:30px;font-weight:700;color:#F2A65A">為什麼不直接用 Google？</h3>
+<p style="font-size:24px;line-height:1.55;color:#F6F4EC">Google 搜尋回傳的是「給人看的網頁」：標題、網址、一小段摘要。要給 AI 讀還得自己再去抓每一頁、清掉廣告和選單。</p>
+<p style="font-size:24px;line-height:1.55;color:#F6F4EC">Tavily 一次就回傳每個結果的<b style="color:#F2A65A">正文片段</b>，程式一行就能貼給模型。Google 自家的 Custom Search API 也要綁 Google Cloud 專案和信用卡，對學生專案太重。</p>
+</div>
+</div>
+<p style="position:absolute;left:128px;bottom:64px;width:1664px;font-size:24px;color:#7A877D">技術細節 10 / 12 · 金鑰名稱 TAVILY_API_KEY · 程式位置 api/_rag.js webSearch()</p>
+<aside>很多人問，App 的「上網查」是不是接 Google 搜尋？不是，我們用的是 Tavily，一個專門給 AI 用的搜尋 API。申請方式和前面一樣：app.tavily.com 用 Google 帳號登入，免信用卡，Overview 頁往下捲就是 API Keys，按加號建一把，金鑰是 tvly 開頭，眼睛圖示可以看全文，複製後到 Vercel 環境變數加一列 TAVILY_API_KEY，Redeploy。免費額度每月一千次搜尋，加上同樣的問題有快取，實際用不到。為什麼不直接用 Google？因為 Google 搜尋回傳的是給人看的網頁清單，標題、網址、一小段摘要，要給 AI 讀還得自己去抓每一頁、清掉廣告和選單；Tavily 一次就回傳每個結果的正文片段，程式一行就能貼給模型。Google 自己的 Custom Search API 也要綁 Google Cloud 專案和信用卡，對學生專案太重。</aside>
+</section>
+<section id="w1-flow" data-transition="fade" style="background:#F6F4EC;color:#1F3A2B;font-family:'Noto Sans TC', Arial, sans-serif;padding:128px 128px 160px;display:flex;flex-direction:column;gap:36px">
+<div style="display:flex;flex-direction:column;gap:16px">
+<p style="font-size:28px;font-weight:700;color:#A8521A;letter-spacing:2px">上網查 ② 搜尋結果怎麼和 RAG 合作</p>
+<h2 style="font-family:'Noto Serif TC', Georgia, serif;font-size:64px;font-weight:900">手冊和網路同時查，再交給一個模型合寫成一個答案</h2>
+</div>
+<div style="display:flex;gap:28px;align-items:stretch">
+<div style="width:300px;background:#FFFDF7;border:2px solid #D8E2D3;border-radius:20px;padding:24px;display:flex;flex-direction:column;justify-content:center;gap:10px">
+<p style="font-size:24px;font-weight:700;color:#A8521A">① 農友的問題</p>
+<p style="font-size:26px;line-height:1.4">「洋香瓜葉子有白粉怎麼辦？」</p>
+<p style="font-size:22px;color:#6A776D">先查快取：問過就直接回</p>
+</div>
+<div style="display:flex;flex-direction:column;justify-content:center;gap:8px"><x-shape kind="arrow-right" style="width:40px;height:24px;background:#9DB5A3"></x-shape></div>
+<div style="flex:1;display:flex;flex-direction:column;gap:20px">
+<div style="background:#E7EEE3;border-radius:20px;padding:22px 26px;display:flex;flex-direction:column;gap:8px">
+<p style="font-size:24px;font-weight:700;color:#2F7A4D">②A 栽培手冊（RAG，可信、優先）</p>
+<p style="font-size:24px;line-height:1.5;color:#4A5A4F">Gemini 把問題變向量 → 和 kb.json 的 277 段比對 → 取最像 5 段，附作物＋頁碼</p>
+</div>
+<div style="background:#E3EAF3;border-radius:20px;padding:22px 26px;display:flex;flex-direction:column;gap:8px">
+<p style="font-size:24px;font-weight:700;color:#2F5A8A">②B 網路（Tavily，補充、僅供參考）</p>
+<p style="font-size:24px;line-height:1.5;color:#4A5A4F">問題自動加上「台灣 溫室栽培 病蟲害 防治」→ 進階搜尋 → 取 4 筆：標題、網址、內文片段（各最多 1,200 字）</p>
+</div>
+<p style="font-size:22px;color:#6A776D;text-align:center">兩邊<b>同時</b>進行（Promise.all）；任何一邊失敗就當作沒結果，另一邊照常回答</p>
+</div>
+<div style="display:flex;flex-direction:column;justify-content:center;gap:8px"><x-shape kind="arrow-right" style="width:40px;height:24px;background:#9DB5A3"></x-shape></div>
+<div style="width:380px;background:#1F3A2B;border-radius:20px;padding:24px;display:flex;flex-direction:column;justify-content:center;gap:10px">
+<p style="font-size:24px;font-weight:700;color:#F2A65A">③ Groq（Llama 3.3）合寫</p>
+<p style="font-size:24px;line-height:1.5;color:#F6F4EC">收到兩包資料：【手冊 1～5】＋【網路 1～4】</p>
+<p style="font-size:22px;line-height:1.5;color:#C9D8CC">規則：手冊優先；手冊沒有才用網路；每個重點結尾標出處；兩邊都沒有就說不知道、建議問改良場</p>
+</div>
+<div style="display:flex;flex-direction:column;justify-content:center;gap:8px"><x-shape kind="arrow-right" style="width:40px;height:24px;background:#9DB5A3"></x-shape></div>
+<div style="width:300px;background:#FFFDF7;border:2px solid #D8E2D3;border-radius:20px;padding:24px;display:flex;flex-direction:column;justify-content:center;gap:10px">
+<p style="font-size:24px;font-weight:700;color:#A8521A">④ 一個答案</p>
+<p style="font-size:22px;line-height:1.5">…摘除病葉並噴施碳酸氫鉀<span style="color:#2F7A4D">（手冊：洋香瓜 第 12 頁）</span>；近年也有農友用…<span style="color:#2F5A8A">（網路：農業知識入口網）</span></p>
+<p style="font-size:22px;color:#6A776D">下方分兩欄列出處；答案存進快取</p>
+</div>
+</div>
+<p style="position:absolute;left:128px;bottom:64px;width:1664px;font-size:24px;color:#7A877D">技術細節 11 / 12 · 程式位置：api/ask.js（並行）、api/_rag.js webSearch()＋generateMerged()</p>
+<aside>這張是搜尋結果和 RAG 怎麼合作的完整流程。農友問「洋香瓜葉子有白粉怎麼辦」，後端先查快取，問過就直接回。沒問過就同時做兩件事：上面是前面講的 RAG，Gemini 把問題變向量、和 277 段手冊比對、取最像的 5 段，每段都帶著作物和頁碼；下面是 Tavily 網路搜尋，問題會自動加上「台灣 溫室栽培 病蟲害 防治」這幾個字，避免搜到百科或品種介紹，用進階搜尋取 4 筆，每筆有標題、網址和內文片段。兩邊是同時跑的，程式裡用 Promise.all，任何一邊失敗就當沒結果，另一邊照常回答，不會整個掛掉。然後把兩包資料一起交給 Groq，提示詞裡的規則很明確：手冊優先，手冊沒有才用網路，每個重點結尾要標出處，兩邊都沒有就老實說不知道、建議問改良場。最後農友看到的是一個答案，每一點後面有括號標明來自手冊第幾頁或哪個網站，下方再分兩欄列出處，答案也存進快取，下次同樣問題就不用再查。</aside>
+</section>
+<section id="w2-prompt" data-transition="fade" style="background:#E7EEE3;color:#1F3A2B;font-family:'Noto Sans TC', Arial, sans-serif;padding:128px 128px 160px;display:flex;flex-direction:column;gap:36px">
+<div style="display:flex;flex-direction:column;gap:16px">
+<p style="font-size:28px;font-weight:700;color:#A8521A;letter-spacing:2px">上網查 ③ 交給模型的那一包，長什麼樣子</p>
+<h2 style="font-family:'Noto Serif TC', Georgia, serif;font-size:64px;font-weight:900">不是「請上網幫我查」，而是把查到的貼給它、規定它怎麼用</h2>
+</div>
+<div style="display:flex;gap:36px;align-items:flex-start">
+<div style="flex:1;background:#1F3A2B;border-radius:20px;padding:28px 32px;display:flex;flex-direction:column;gap:14px">
+<p style="font-size:24px;font-weight:700;color:#F2A65A">system（規則，程式寫死）</p>
+<p style="font-size:23px;line-height:1.55;color:#F6F4EC">你是台灣溫室栽培的農業專家助理…用繁體中文回答，語氣簡單、步驟清楚。<br>你會拿到兩種資料：「栽培手冊」（可信，優先採用）與「網路搜尋結果」（僅供參考）。<br>1) 優先根據手冊回答；手冊沒有、或需要較新資訊時，才引用網路。<br>2) 每個重點結尾用括號標註依據，例如（手冊：洋香瓜 第12頁）或（網路：來源標題）。<br>3) 只根據提供的資料作答，不要杜撰；兩邊都沒有就誠實說明並建議諮詢農業改良場。</p>
+</div>
+<div style="flex:1;display:flex;flex-direction:column;gap:20px">
+<div style="background:#FFFDF7;border:2px solid #D8E2D3;border-radius:20px;padding:24px 28px;display:flex;flex-direction:column;gap:10px">
+<p style="font-size:24px;font-weight:700;color:#2F7A4D">user（每次查到的資料，程式組出來）</p>
+<p style="font-size:22px;line-height:1.55;color:#4A5A4F;font-family:Menlo, Courier, monospace">【栽培手冊】<br>【手冊1｜洋香瓜 第12頁】白粉病初期於葉面出現白色粉狀…<br>【手冊2｜洋香瓜 第13頁】…<br><br>【網路搜尋結果】<br>【網路1｜瓜類白粉病防治 - 農業知識入口網】https://kmweb.moa.gov.tw/…<br>白粉病好發於…<br><br>問題：洋香瓜葉子有白粉怎麼辦？</p>
+</div>
+<div style="background:#FFFDF7;border:2px solid #D8E2D3;border-radius:20px;padding:20px 28px;display:flex;flex-direction:column;gap:8px">
+<p style="font-size:26px;line-height:1.5;color:#4A5A4F"><b>為什麼這樣設計：</b>模型沒有上網能力，也不該自己決定信什麼。搜尋由我們的程式做，資料由我們貼給它，信任順序也由我們規定，它只負責「用白話整理」。</p>
+</div>
+</div>
+</div>
+<p style="position:absolute;left:128px;bottom:64px;width:1664px;font-size:24px;color:#6A776D">技術細節 12 / 12 · 這就是 RAG 的本意：Retrieval（我們查）→ Augmented（貼給它）→ Generation（它寫）</p>
+<aside>最後看一下交給模型的那一包實際長什麼樣子，這是最多人誤會的地方。我們不是對模型說「請上網幫我查」，模型根本沒有上網能力。而是左邊這段 system 規則，程式寫死的：你是農業助理，會拿到手冊和網路兩種資料，手冊優先，每點要標出處，不准杜撰。右邊是 user 內容，每次查到的資料由程式組出來：先放手冊段落，每段標作物和頁碼；再放網路結果，每筆標標題和網址；最後才是農友的問題。所以搜尋是我們的程式做的，資料是我們貼給它的，信任順序是我們規定的，模型只負責用白話整理。這其實就是 RAG 三個字的本意：Retrieval 我們查、Augmented 貼給它、Generation 它寫。技術細節到這裡結束。</aside>
+</section>
 <section id="s8-debug" data-section="除錯、現況與心得" data-transition="fade" style="background:#F6F4EC;color:#1F3A2B;font-family:'Noto Sans TC', Arial, sans-serif;padding:128px 128px 160px;display:flex;flex-direction:column;gap:40px">
 <div style="display:flex;flex-direction:column;gap:16px">
 <p style="font-size:28px;font-weight:700;color:#A8521A;letter-spacing:2px">步驟 8</p>
@@ -452,6 +819,7 @@
 <p style="font-size:32px;color:#F2A65A">謝謝聆聽 · hami-crop-advisor.vercel.app</p>
 <aside>最後總結。回頭看，這八個步驟其實是一個循環：想清楚、做出來、放上去、卡住就問、修好再繼續。三個心得：第一，不用先會寫程式，但要能把問題說清楚。第二，卡住時把畫面截圖給 AI 看，比自己亂猜快很多。第三，免費服務可以混搭，一家額度不夠，就讓兩家分工。網址在這裡，歡迎大家用手機打開試試看。謝謝。</aside>
 </section>
+
 </div>
 <div id="notes"></div>
 <div id="hint">← → 換頁 · N 講稿 · F 全螢幕（Esc 離開）<button id="fs">⛶ 全螢幕</button></div>
@@ -463,6 +831,8 @@ const ICONS = {
   Globe: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.7 3.8 5.7 3.8 9s-1.3 6.3-3.8 9c-2.5-2.7-3.8-5.7-3.8-9S9.5 5.7 12 3z"/>',
   Lock: '<rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>',
   Home: '<path d="M3 11 12 3l9 8v10H3z"/><path d="M9 21v-6h6v6"/>',
+  Smartphone: '<rect x="6" y="2" width="12" height="20" rx="2"/><path d="M11 18h2"/>',
+  Sparkles: '<path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/><path d="M19 17l.8 2.2L22 20l-2.2.8L19 23l-.8-2.2L16 20l2.2-.8z"/>',
   Check: '<path d="M4 12.5 9.5 18 20 6"/>'
 };
 document.querySelectorAll('x-icon').forEach(el => {

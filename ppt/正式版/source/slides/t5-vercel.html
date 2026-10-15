@@ -1,0 +1,42 @@
+<section id="t5-vercel" data-transition="fade" style="background:#F6F4EC;color:#1F3A2B;font-family:'Noto Sans TC', Arial, sans-serif;padding:128px 128px 160px;display:flex;flex-direction:column;gap:36px">
+<div style="display:flex;flex-direction:column;gap:16px">
+<p style="font-size:28px;font-weight:700;color:#A8521A;letter-spacing:2px">架網站 ① GitHub 的程式碼怎麼變成網址</p>
+<h2 style="font-family:'Noto Serif TC', Georgia, serif;font-size:64px;font-weight:900">Vercel：用 GitHub 帳號登入，匯入儲存庫，按 Deploy</h2>
+</div>
+<div style="display:flex;gap:20px;align-items:stretch">
+<div style="flex:1;background:#FFFDF7;border:2px solid #D8E2D3;border-radius:20px;padding:22px 24px;display:flex;flex-direction:column;gap:8px">
+<p style="font-size:28px;font-weight:900;color:#2F7A4D">1 · 登入</p>
+<p style="font-size:24px;line-height:1.45;color:#4A5A4F">vercel.com → <b>Continue with GitHub</b>，Vercel 才看得到你的儲存庫</p>
+</div>
+<div style="flex:1;background:#FFFDF7;border:2px solid #D8E2D3;border-radius:20px;padding:22px 24px;display:flex;flex-direction:column;gap:8px">
+<p style="font-size:28px;font-weight:900;color:#2F7A4D">2 · 匯入</p>
+<p style="font-size:24px;line-height:1.45;color:#4A5A4F"><b>Add New → Project</b>，找到 hami-crop-advisor 按 Import</p>
+</div>
+<div style="flex:1;background:#FFFDF7;border:2px solid #D8E2D3;border-radius:20px;padding:22px 24px;display:flex;flex-direction:column;gap:8px">
+<p style="font-size:28px;font-weight:900;color:#2F7A4D">3 · 設定</p>
+<p style="font-size:24px;line-height:1.45;color:#4A5A4F">Framework 選 <b>Other</b>（純靜態＋api/）；Root Directory 維持根目錄</p>
+</div>
+<div style="flex:1;background:#1F3A2B;border:2px solid #1F3A2B;border-radius:20px;padding:22px 24px;display:flex;flex-direction:column;gap:8px">
+<p style="font-size:28px;font-weight:900;color:#F2A65A">4 · Deploy</p>
+<p style="font-size:24px;line-height:1.45;color:#C9D8CC">一分鐘後得到 <b style="color:#F6F4EC">hami-crop-advisor.vercel.app</b></p>
+</div>
+</div>
+<div style="display:flex;gap:36px;align-items:flex-start">
+<div style="width:1000px;display:flex;flex-direction:column;gap:10px">
+<img src="/_blob/cc716016084015824fbdb43ffb3a5a2b" alt="Vercel Deployments 頁面：每一筆部署對應一個 GitHub commit，狀態 Ready，分支 main，最上面一筆標 Production" style="width:1000px;height:400px;object-fit:contain;border:2px solid #D8E2D3;border-radius:16px;background:#FFFFFF">
+<p style="font-size:24px;color:#6A776D">Deployments 頁：一筆 commit ＝ 一次部署，建置 7～14 秒，最新一筆就是正式站</p>
+</div>
+<div style="flex:1;display:flex;flex-direction:column;gap:18px">
+<div style="background:#E7EEE3;border-radius:16px;padding:22px 28px;display:flex;flex-direction:column;gap:10px">
+<h3 style="font-size:29px;font-weight:700">Vercel 怎麼知道程式改了？</h3>
+<p style="font-size:25px;line-height:1.5;color:#4A5A4F">匯入時 Vercel 在 GitHub 裝一個「通知」：main 一有新 commit 就重新部署。右邊每一列的 commit 代號和 GitHub 上的一模一樣。</p>
+</div>
+<div style="background:#E7EEE3;border-radius:16px;padding:22px 28px;display:flex;flex-direction:column;gap:10px">
+<h3 style="font-size:29px;font-weight:700">專案裡的 vercel.json</h3>
+<p style="font-size:25px;line-height:1.5;color:#4A5A4F">只做兩件事：網址去掉 .html；執行 api/ 時把 kb.json（知識庫）一起帶著。</p>
+</div>
+</div>
+</div>
+<p style="position:absolute;left:128px;bottom:64px;width:1664px;font-size:24px;color:#7A877D">技術細節 6 / 12</p>
+<aside>第三件事，把 GitHub 上的程式碼變成一個網址，這是 Vercel 的工作。四步：到 vercel.com 用 GitHub 帳號登入，一定要用 GitHub 登入，Vercel 才看得到你的儲存庫；Add New、Project，清單裡找到 hami-crop-advisor 按 Import；設定頁 Framework 選 Other，因為我們是純靜態網頁加 api 資料夾，不是什麼框架；最後按 Deploy，一分鐘後就拿到 hami-crop-advisor.vercel.app 這個網址。下面是我們專案真實的 Deployments 頁面，每一列就是一次部署，對應 GitHub 上的一筆 commit，代號一模一樣，建置只要 7 到 14 秒，最上面標 Production 的就是現在農友用的版本。匯入時 Vercel 會在 GitHub 裝一個通知，之後 main 分支一有新 commit 就自動重新部署，這就是前一張綠色勾勾的來源。專案裡的 vercel.json 很短，只有兩個設定：網址去掉 .html，還有執行 api 時要把知識庫 kb.json 一起帶著。</aside>
+</section>

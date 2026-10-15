@@ -1,0 +1,39 @@
+<section id="w1-flow" data-transition="fade" style="background:#F6F4EC;color:#1F3A2B;font-family:'Noto Sans TC', Arial, sans-serif;padding:128px 128px 160px;display:flex;flex-direction:column;gap:36px">
+<div style="display:flex;flex-direction:column;gap:16px">
+<p style="font-size:28px;font-weight:700;color:#A8521A;letter-spacing:2px">上網查 ② 搜尋結果怎麼和 RAG 合作</p>
+<h2 style="font-family:'Noto Serif TC', Georgia, serif;font-size:64px;font-weight:900">手冊和網路同時查，再交給一個模型合寫成一個答案</h2>
+</div>
+<div style="display:flex;gap:28px;align-items:stretch">
+<div style="width:300px;background:#FFFDF7;border:2px solid #D8E2D3;border-radius:20px;padding:24px;display:flex;flex-direction:column;justify-content:center;gap:10px">
+<p style="font-size:24px;font-weight:700;color:#A8521A">① 農友的問題</p>
+<p style="font-size:26px;line-height:1.4">「洋香瓜葉子有白粉怎麼辦？」</p>
+<p style="font-size:22px;color:#6A776D">先查快取：問過就直接回</p>
+</div>
+<div style="display:flex;flex-direction:column;justify-content:center;gap:8px"><x-shape kind="arrow-right" style="width:40px;height:24px;background:#9DB5A3"></x-shape></div>
+<div style="flex:1;display:flex;flex-direction:column;gap:20px">
+<div style="background:#E7EEE3;border-radius:20px;padding:22px 26px;display:flex;flex-direction:column;gap:8px">
+<p style="font-size:24px;font-weight:700;color:#2F7A4D">②A 栽培手冊（RAG，可信、優先）</p>
+<p style="font-size:24px;line-height:1.5;color:#4A5A4F">Gemini 把問題變向量 → 和 kb.json 的 277 段比對 → 取最像 5 段，附作物＋頁碼</p>
+</div>
+<div style="background:#E3EAF3;border-radius:20px;padding:22px 26px;display:flex;flex-direction:column;gap:8px">
+<p style="font-size:24px;font-weight:700;color:#2F5A8A">②B 網路（Tavily，補充、僅供參考）</p>
+<p style="font-size:24px;line-height:1.5;color:#4A5A4F">問題自動加上「台灣 溫室栽培 病蟲害 防治」→ 進階搜尋 → 取 4 筆：標題、網址、內文片段（各最多 1,200 字）</p>
+</div>
+<p style="font-size:22px;color:#6A776D;text-align:center">兩邊<b>同時</b>進行（Promise.all）；任何一邊失敗就當作沒結果，另一邊照常回答</p>
+</div>
+<div style="display:flex;flex-direction:column;justify-content:center;gap:8px"><x-shape kind="arrow-right" style="width:40px;height:24px;background:#9DB5A3"></x-shape></div>
+<div style="width:380px;background:#1F3A2B;border-radius:20px;padding:24px;display:flex;flex-direction:column;justify-content:center;gap:10px">
+<p style="font-size:24px;font-weight:700;color:#F2A65A">③ Groq（Llama 3.3）合寫</p>
+<p style="font-size:24px;line-height:1.5;color:#F6F4EC">收到兩包資料：【手冊 1～5】＋【網路 1～4】</p>
+<p style="font-size:22px;line-height:1.5;color:#C9D8CC">規則：手冊優先；手冊沒有才用網路；每個重點結尾標出處；兩邊都沒有就說不知道、建議問改良場</p>
+</div>
+<div style="display:flex;flex-direction:column;justify-content:center;gap:8px"><x-shape kind="arrow-right" style="width:40px;height:24px;background:#9DB5A3"></x-shape></div>
+<div style="width:300px;background:#FFFDF7;border:2px solid #D8E2D3;border-radius:20px;padding:24px;display:flex;flex-direction:column;justify-content:center;gap:10px">
+<p style="font-size:24px;font-weight:700;color:#A8521A">④ 一個答案</p>
+<p style="font-size:22px;line-height:1.5">…摘除病葉並噴施碳酸氫鉀<span style="color:#2F7A4D">（手冊：洋香瓜 第 12 頁）</span>；近年也有農友用…<span style="color:#2F5A8A">（網路：農業知識入口網）</span></p>
+<p style="font-size:22px;color:#6A776D">下方分兩欄列出處；答案存進快取</p>
+</div>
+</div>
+<p style="position:absolute;left:128px;bottom:64px;width:1664px;font-size:24px;color:#7A877D">技術細節 11 / 12 · 程式位置：api/ask.js（並行）、api/_rag.js webSearch()＋generateMerged()</p>
+<aside>這張是搜尋結果和 RAG 怎麼合作的完整流程。農友問「洋香瓜葉子有白粉怎麼辦」，後端先查快取，問過就直接回。沒問過就同時做兩件事：上面是前面講的 RAG，Gemini 把問題變向量、和 277 段手冊比對、取最像的 5 段，每段都帶著作物和頁碼；下面是 Tavily 網路搜尋，問題會自動加上「台灣 溫室栽培 病蟲害 防治」這幾個字，避免搜到百科或品種介紹，用進階搜尋取 4 筆，每筆有標題、網址和內文片段。兩邊是同時跑的，程式裡用 Promise.all，任何一邊失敗就當沒結果，另一邊照常回答，不會整個掛掉。然後把兩包資料一起交給 Groq，提示詞裡的規則很明確：手冊優先，手冊沒有才用網路，每個重點結尾要標出處，兩邊都沒有就老實說不知道、建議問改良場。最後農友看到的是一個答案，每一點後面有括號標明來自手冊第幾頁或哪個網站，下方再分兩欄列出處，答案也存進快取，下次同樣問題就不用再查。</aside>
+</section>

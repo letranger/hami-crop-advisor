@@ -3,12 +3,13 @@
   "createdOnFiles": {"v": 1, "at": "2026-10-12T10:30:00+08:00"},
   "lists": "css",
   "title": "溫室植栽專家系統是怎麼做出來的",
-  "order": ["cover", "timeline", "s1-mockup", "s2-prototype", "s3-docs", "s4-ask", "s5-vector", "s5-runtime", "s6-quota", "s7-deploy", "s7-free", "s8-debug", "s8-farmers", "status", "closing"],
+  "order": ["cover", "timeline", "s1-mockup", "s2-prototype", "s3-docs", "s4-ask", "s5-vector", "s5-runtime", "s6-quota", "s7-deploy", "s7-free", "t0-intro", "t1-groq", "t2-gemini", "t3-github", "t4-commits", "t5-vercel", "t6-env", "t7-hide", "t8-check", "w0-tavily", "w1-flow", "w2-prompt", "s8-debug", "s8-farmers", "status", "closing"],
   "sections": {
     "a": {"description": "開場與全貌", "start": "cover"},
     "b": {"description": "從畫面到雛形", "start": "s1-mockup"},
     "c": {"description": "讓 AI 讀懂栽培手冊", "start": "s3-docs"},
     "d": {"description": "額度危機與上線", "start": "s6-quota"},
+    "f": {"description": "技術細節：拿鑰匙、GitHub、Vercel、藏鑰匙、網路搜尋", "start": "t0-intro"},
     "e": {"description": "除錯、現況與心得", "start": "s8-debug"}
   },
   "faces": {

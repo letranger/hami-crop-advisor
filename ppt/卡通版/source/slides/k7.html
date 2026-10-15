@@ -1,0 +1,35 @@
+<section id="k7" data-transition="push" style="background:#FFE3D6;color:#2B2B2B;font-family:'LXGW WenKai TC', Arial, sans-serif;padding:64px;display:flex;flex-direction:column">
+<div style="position:absolute;left:0;top:930px;width:1920px;height:150px;background:#F0DDA8;border-top:6px solid #2B2B2B"></div>
+<p style="position:absolute;left:64px;top:56px;width:1060px;font-family:'Chiron GoRound TC', Arial, sans-serif;font-size:48px;font-weight:900;background:#FFE16B;border:5px solid #2B2B2B;border-radius:14px;padding:14px 32px;transform:rotate(-2deg);box-shadow:8px 8px 0 #2B2B2B">藏鑰匙 ①：手機只跟自家後端講話</p>
+<div style="position:absolute;left:64px;top:200px;width:1792px;display:flex;align-items:center;gap:20px">
+<div style="flex:1;background:#FFFDF6;border:5px solid #2B2B2B;border-radius:20px;padding:22px 26px;display:flex;flex-direction:column;gap:6px;box-shadow:6px 6px 0 #2B2B2B">
+<x-icon name="Smartphone" style="color:#2B2B2B;width:56px;height:56px"></x-icon>
+<p style="font-family:'Chiron GoRound TC', Arial, sans-serif;font-size:32px;font-weight:900">農友手機 app.js</p>
+<p style="font-size:24px;font-family:Menlo, Courier, monospace">fetch('/api/ask', {question})</p>
+<p style="font-size:25px;line-height:1.35">誰都看得到原始碼，但<b>沒有鑰匙</b></p>
+</div>
+<x-shape kind="arrow-right" style="width:56px;height:32px;background:#2B2B2B"></x-shape>
+<div style="flex:1;background:#2B2B2B;border:5px solid #2B2B2B;border-radius:20px;padding:22px 26px;display:flex;flex-direction:column;gap:6px;box-shadow:6px 6px 0 #7A45C4">
+<x-icon name="Lock" style="color:#FFD84D;width:56px;height:56px"></x-icon>
+<p style="font-family:'Chiron GoRound TC', Arial, sans-serif;font-size:32px;font-weight:900;color:#FFFDF6">房東那邊 api/_rag.js</p>
+<p style="font-size:24px;font-family:Menlo, Courier, monospace;color:#FFD84D">process.env.GROQ_API_KEY</p>
+<p style="font-size:25px;line-height:1.35;color:#FFFDF6">執行時才從環境變數讀鑰匙</p>
+</div>
+<x-shape kind="arrow-right" style="width:56px;height:32px;background:#2B2B2B"></x-shape>
+<div style="flex:1;background:#FFFDF6;border:5px solid #2B2B2B;border-radius:20px;padding:22px 26px;display:flex;flex-direction:column;gap:6px;box-shadow:6px 6px 0 #2B2B2B">
+<x-icon name="Sparkles" style="color:#2B2B2B;width:56px;height:56px"></x-icon>
+<p style="font-family:'Chiron GoRound TC', Arial, sans-serif;font-size:32px;font-weight:900">Groq / Gemini</p>
+<p style="font-size:24px;font-family:Menlo, Courier, monospace">Authorization: Bearer gsk_…</p>
+<p style="font-size:25px;line-height:1.35">只有這一段才帶鑰匙</p>
+</div>
+</div>
+<div style="position:absolute;left:64px;top:520px;width:1180px;display:grid;grid-template-columns:repeat(2, 1fr);gap:20px">
+<div style="background:#FFD6D0;border:5px solid #D64545;border-radius:20px;padding:20px 26px;display:flex;flex-direction:column;gap:8px"><p style="font-family:'Chiron GoRound TC', Arial, sans-serif;font-size:30px;font-weight:900;color:#8B2E1C">✗ 錯誤：寫在 app.js</p><p style="font-size:22px;line-height:1.5;font-family:Menlo, Courier, monospace;color:#8B2E1C">const KEY='gsk_abc123…';<br>fetch('https://api.groq.com/…')</p><p style="font-size:24px;line-height:1.35;color:#5A3A33">按「檢視原始碼」就被拿走，額度刷光</p></div>
+<div style="background:#D7F0DB;border:5px solid #2E7D4F;border-radius:20px;padding:20px 26px;display:flex;flex-direction:column;gap:8px"><p style="font-family:'Chiron GoRound TC', Arial, sans-serif;font-size:30px;font-weight:900;color:#1F5A34">✓ 正確：寫在 api/_rag.js</p><p style="font-size:22px;line-height:1.5;font-family:Menlo, Courier, monospace;color:#1F5A34">const k=process.env.GROQ_API_KEY;<br>if(!k) throw new Error('未設定');</p><p style="font-size:24px;line-height:1.35;color:#2F4A38">程式碼裡只有名字，值永遠只在 Vercel</p></div>
+</div>
+<svg aria-label="卡通 Claude，嚴肅提醒" width="200" height="260" viewBox="0 0 200 260" style="position:absolute;left:1600px;top:640px;width:224px;height:291px"><path d="M26 160 Q6 176 12 204" fill="none" stroke="#2B2B2B" stroke-width="6" stroke-linecap="round"/><path d="M174 150 Q196 130 190 100" fill="none" stroke="#2B2B2B" stroke-width="6" stroke-linecap="round"/><line x1="100" y1="52" x2="100" y2="26" stroke="#2B2B2B" stroke-width="5"/><path d="M100 4 L106 16 L118 20 L106 24 L100 36 L94 24 L82 20 L94 16 Z" fill="#FFD84D" stroke="#2B2B2B" stroke-width="3" stroke-linejoin="round"/><path d="M100 50 C152 50 178 92 178 150 C178 214 146 250 100 250 C54 250 22 214 22 150 C22 92 48 50 100 50 Z" fill="#E8833A" stroke="#2B2B2B" stroke-width="5"/><ellipse cx="100" cy="196" rx="46" ry="36" fill="#F4B27A"/><path d="M60 104 L88 112" stroke="#2B2B2B" stroke-width="6" stroke-linecap="round"/><path d="M140 104 L112 112" stroke="#2B2B2B" stroke-width="6" stroke-linecap="round"/><circle cx="78" cy="128" r="7" fill="#2B2B2B"/><circle cx="122" cy="128" r="7" fill="#2B2B2B"/><path d="M86 164 L114 164" stroke="#2B2B2B" stroke-width="5" stroke-linecap="round"/></svg>
+<p style="position:absolute;left:1290px;top:520px;width:566px;background:#FFFDF6;border:5px solid #2B2B2B;border-radius:36px;padding:18px 30px;font-size:32px;line-height:1.4">鑰匙寫在網頁裡，<br>等於<b>放在門口地墊下</b>。<br>這就是不能只用 GitHub Pages 的真正原因。</p>
+<svg aria-label="" width="60" height="50" viewBox="0 0 60 50" style="position:absolute;left:1680px;top:688px;width:60px;height:50px"><path d="M10 2 L44 48 L50 2" fill="#FFFDF6" stroke="#2B2B2B" stroke-width="5" stroke-linejoin="round"/></svg>
+<p style="position:absolute;left:64px;bottom:40px;width:1792px;font-size:28px;color:#5A4A22">技術幕後 8 / 12 · 第八幕 Claude 那句「鑰匙絕對不能寫在網頁裡」，就是在講這張</p>
+<aside>藏鑰匙，最重要的一張。原則：手機只跟我們自家後端講話，後端才拿鑰匙去找 AI。左邊是農友手機上的 app.js，只呼叫 /api/ask，誰都看得到原始碼，但裡面沒有鑰匙。中間是房東那邊的 api/_rag.js，執行時才用 process.env.GROQ_API_KEY 從環境變數讀鑰匙。右邊是後端對 Groq 或 Gemini 的請求，只有這段才帶鑰匙。下面對比：錯的是把 gsk 那串直接寫在 app.js，按檢視原始碼就被拿走，額度一下刷光；對的是程式碼裡只有名字，值永遠只在 Vercel。Claude 說：鑰匙寫在網頁裡等於放在門口地墊下，這就是不能只用 GitHub Pages 的真正原因。</aside>
+</section>

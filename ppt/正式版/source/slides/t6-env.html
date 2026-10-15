@@ -1,0 +1,21 @@
+<section id="t6-env" data-transition="fade" style="background:#E7EEE3;color:#1F3A2B;font-family:'Noto Sans TC', Arial, sans-serif;padding:128px 128px 160px;display:flex;flex-direction:column;gap:36px">
+<div style="display:flex;flex-direction:column;gap:16px">
+<p style="font-size:28px;font-weight:700;color:#A8521A;letter-spacing:2px">架網站 ② 把鑰匙交給 Vercel</p>
+<h2 style="font-family:'Noto Serif TC', Georgia, serif;font-size:64px;font-weight:900">Settings → Environment Variables：名字配鑰匙，存檔</h2>
+</div>
+<div style="display:flex;gap:36px;align-items:flex-start">
+<div style="width:1000px;display:flex;flex-direction:column;gap:14px">
+<img src="/_blob/a7697149659454c5929b99317637b162" alt="Vercel 專案設定頁，左欄選 Environment Variables，右上有 Add Environment Variable 按鈕，清單列出 Upstash 自動注入的變數" style="width:1000px;height:360px;object-fit:contain;border:2px solid #D8E2D3;border-radius:16px;background:#FFFFFF">
+<img src="/_blob/1016d2bfcfad176a36af02cc8b4e4cc7" alt="清單往下：TAVILY_API_KEY、GROQ_API_KEY、GEMINI_API_KEY 三列，分別於 7 月 21、20、18 日加入" style="width:1000px;height:234px;object-fit:contain;border:2px solid #D8E2D3;border-radius:16px;background:#FFFFFF">
+</div>
+<div style="flex:1;display:flex;flex-direction:column;gap:18px">
+<div style="display:flex;gap:16px;align-items:flex-start"><p style="font-size:30px;font-weight:900;color:#2F7A4D;width:40px">1</p><p style="flex:1;font-size:27px;line-height:1.4">進專案 → <b>Settings</b> → 左欄 <b>Environment Variables</b></p></div>
+<div style="display:flex;gap:16px;align-items:flex-start"><p style="font-size:30px;font-weight:900;color:#2F7A4D;width:40px">2</p><p style="flex:1;font-size:27px;line-height:1.4">右上 <b>Add Environment Variable</b>，Key 填程式約定的名字（如 GROQ_API_KEY）</p></div>
+<div style="display:flex;gap:16px;align-items:flex-start"><p style="font-size:30px;font-weight:900;color:#2F7A4D;width:40px">3</p><p style="flex:1;font-size:27px;line-height:1.4">Value 貼上剛複製的金鑰 → Save。存進去後畫面只剩鎖頭，看不到值</p></div>
+<div style="display:flex;gap:16px;align-items:flex-start"><p style="font-size:30px;font-weight:900;color:#2F7A4D;width:40px">4</p><p style="flex:1;font-size:27px;line-height:1.4">到 Deployments <b>Redeploy</b> 一次，新變數才生效</p></div>
+<div style="background:#FFFDF7;border-radius:16px;padding:20px 24px"><p style="font-size:25px;line-height:1.5;color:#4A5A4F">上半部五個 UPSTASH_… 是 Storage → 建 Upstash Redis → 連結專案時自動塞進來的；我們手填的只有下半部三把，日期就是申請金鑰的那幾天。</p></div>
+</div>
+</div>
+<p style="position:absolute;left:128px;bottom:64px;width:1664px;font-size:24px;color:#6A776D">技術細節 7 / 12 · 名字要和 .env.example 一模一樣</p>
+<aside>鑰匙拿到了、網站架好了，接下來把鑰匙交給 Vercel。這是我們專案的真實設定頁：進專案後點 Settings，左欄選 Environment Variables。每一列是一組名字配鑰匙：按右上 Add Environment Variable，Key 填程式裡約定好的名字，例如 GROQ_API_KEY；Value 貼上剛才複製的金鑰；按 Save。存進去之後畫面只剩一個鎖頭，連自己都看不到值，這是正常的。存完要到 Deployments 按一次 Redeploy，新的變數才會生效，這是我們實際忘記過的一步。清單上半部五個 UPSTASH 開頭的不是手填的，是在 Storage 建立 Redis 並連結專案時 Vercel 自動塞進來的；我們手填的只有下半部三把，Gemini 7 月 18、Groq 7 月 20、Tavily 7 月 21，正好對應前面申請金鑰的日期。重點是名字要和專案裡 .env.example 寫的一模一樣，差一個字母程式就讀不到。</aside>
+</section>

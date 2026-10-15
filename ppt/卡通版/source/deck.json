@@ -3,12 +3,13 @@
   "createdOnFiles": {"v": 1, "at": "2026-10-12T11:00:00+08:00"},
   "lists": "css",
   "title": "溫室植栽專家系統誕生記（卡通版）",
-  "order": ["cover", "cast", "act1", "act2", "act2b", "act3", "act4", "act5", "act6", "act7", "act8", "act8b", "act9", "act10", "finale"],
+  "order": ["cover", "cast", "act1", "act2", "act2b", "act3", "act4", "act5", "act6", "act7", "act8", "act8b", "k0", "k1", "k2", "k3", "k4", "k5", "k6", "k7", "k8", "k9", "k10", "k11", "act9", "act10", "finale"],
   "sections": {
     "a": {"description": "開場與登場人物", "start": "cover"},
     "b": {"description": "一張圖變成雛形", "start": "act1"},
     "c": {"description": "讓 AI 讀懂手冊", "start": "act3"},
     "d": {"description": "額度危機與上網", "start": "act6"},
+    "f": {"description": "幕間：技術幕後大公開（鑰匙、GitHub、Vercel、藏鑰匙、上網查）", "start": "k0"},
     "e": {"description": "除錯地獄與大結局", "start": "act9"}
   },
   "faces": {

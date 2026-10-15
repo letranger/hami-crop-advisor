@@ -1,0 +1,24 @@
+<section id="w0-tavily" data-transition="fade" style="background:#F6F4EC;color:#1F3A2B;font-family:'Noto Sans TC', Arial, sans-serif;padding:128px 128px 160px;display:flex;flex-direction:column;gap:36px">
+<div style="display:flex;flex-direction:column;gap:16px">
+<p style="font-size:28px;font-weight:700;color:#A8521A;letter-spacing:2px">上網查 ① 讓 App 能搜尋網路</p>
+<h2 style="font-family:'Noto Serif TC', Georgia, serif;font-size:64px;font-weight:900">不是用 Google 搜尋，而是用 Tavily：專門給 AI 用的搜尋 API</h2>
+</div>
+<div style="display:flex;gap:40px;align-items:flex-start">
+<div style="flex:1;display:flex;flex-direction:column;gap:16px">
+<img src="/_blob/ed39efcd0a6090b17afce7fd4d9d6f23" alt="Tavily 後台 Overview 頁面的 API Keys 區塊，一把名為 default 的 tvly-dev 金鑰" style="width:1000px;height:147px;object-fit:contain;border:2px solid #D8E2D3;border-radius:16px;background:#FFFFFF">
+<p style="font-size:24px;color:#6A776D">app.tavily.com → Overview 往下捲就是 API Keys；按「＋」建新的，眼睛圖示看全文，複製圖示複製</p>
+<div style="display:flex;gap:20px">
+<div style="flex:1;background:#E7EEE3;border-radius:16px;padding:20px 24px;display:flex;flex-direction:column;gap:6px"><p style="font-size:26px;font-weight:700">申請</p><p style="font-size:24px;line-height:1.5;color:#4A5A4F">Google 帳號登入即可，免信用卡；金鑰 tvly- 開頭</p></div>
+<div style="flex:1;background:#E7EEE3;border-radius:16px;padding:20px 24px;display:flex;flex-direction:column;gap:6px"><p style="font-size:26px;font-weight:700">額度</p><p style="font-size:24px;line-height:1.5;color:#4A5A4F">免費每月 1,000 次搜尋；問過的問題有快取，實際用不到</p></div>
+<div style="flex:1;background:#E7EEE3;border-radius:16px;padding:20px 24px;display:flex;flex-direction:column;gap:6px"><p style="font-size:26px;font-weight:700">設定</p><p style="font-size:24px;line-height:1.5;color:#4A5A4F">Vercel 環境變數加一列 TAVILY_API_KEY，Redeploy</p></div>
+</div>
+</div>
+<div style="width:520px;background:#1F3A2B;border-radius:20px;padding:28px 32px;display:flex;flex-direction:column;gap:14px">
+<h3 style="font-size:30px;font-weight:700;color:#F2A65A">為什麼不直接用 Google？</h3>
+<p style="font-size:24px;line-height:1.55;color:#F6F4EC">Google 搜尋回傳的是「給人看的網頁」：標題、網址、一小段摘要。要給 AI 讀還得自己再去抓每一頁、清掉廣告和選單。</p>
+<p style="font-size:24px;line-height:1.55;color:#F6F4EC">Tavily 一次就回傳每個結果的<b style="color:#F2A65A">正文片段</b>，程式一行就能貼給模型。Google 自家的 Custom Search API 也要綁 Google Cloud 專案和信用卡，對學生專案太重。</p>
+</div>
+</div>
+<p style="position:absolute;left:128px;bottom:64px;width:1664px;font-size:24px;color:#7A877D">技術細節 10 / 12 · 金鑰名稱 TAVILY_API_KEY · 程式位置 api/_rag.js webSearch()</p>
+<aside>很多人問，App 的「上網查」是不是接 Google 搜尋？不是，我們用的是 Tavily，一個專門給 AI 用的搜尋 API。申請方式和前面一樣：app.tavily.com 用 Google 帳號登入，免信用卡，Overview 頁往下捲就是 API Keys，按加號建一把，金鑰是 tvly 開頭，眼睛圖示可以看全文，複製後到 Vercel 環境變數加一列 TAVILY_API_KEY，Redeploy。免費額度每月一千次搜尋，加上同樣的問題有快取，實際用不到。為什麼不直接用 Google？因為 Google 搜尋回傳的是給人看的網頁清單，標題、網址、一小段摘要，要給 AI 讀還得自己去抓每一頁、清掉廣告和選單；Tavily 一次就回傳每個結果的正文片段，程式一行就能貼給模型。Google 自己的 Custom Search API 也要綁 Google Cloud 專案和信用卡，對學生專案太重。</aside>
+</section>

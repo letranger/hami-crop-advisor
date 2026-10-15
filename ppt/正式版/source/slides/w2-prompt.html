@@ -1,0 +1,23 @@
+<section id="w2-prompt" data-transition="fade" style="background:#E7EEE3;color:#1F3A2B;font-family:'Noto Sans TC', Arial, sans-serif;padding:128px 128px 160px;display:flex;flex-direction:column;gap:36px">
+<div style="display:flex;flex-direction:column;gap:16px">
+<p style="font-size:28px;font-weight:700;color:#A8521A;letter-spacing:2px">上網查 ③ 交給模型的那一包，長什麼樣子</p>
+<h2 style="font-family:'Noto Serif TC', Georgia, serif;font-size:64px;font-weight:900">不是「請上網幫我查」，而是把查到的貼給它、規定它怎麼用</h2>
+</div>
+<div style="display:flex;gap:36px;align-items:flex-start">
+<div style="flex:1;background:#1F3A2B;border-radius:20px;padding:28px 32px;display:flex;flex-direction:column;gap:14px">
+<p style="font-size:24px;font-weight:700;color:#F2A65A">system（規則，程式寫死）</p>
+<p style="font-size:23px;line-height:1.55;color:#F6F4EC">你是台灣溫室栽培的農業專家助理…用繁體中文回答，語氣簡單、步驟清楚。<br>你會拿到兩種資料：「栽培手冊」（可信，優先採用）與「網路搜尋結果」（僅供參考）。<br>1) 優先根據手冊回答；手冊沒有、或需要較新資訊時，才引用網路。<br>2) 每個重點結尾用括號標註依據，例如（手冊：洋香瓜 第12頁）或（網路：來源標題）。<br>3) 只根據提供的資料作答，不要杜撰；兩邊都沒有就誠實說明並建議諮詢農業改良場。</p>
+</div>
+<div style="flex:1;display:flex;flex-direction:column;gap:20px">
+<div style="background:#FFFDF7;border:2px solid #D8E2D3;border-radius:20px;padding:24px 28px;display:flex;flex-direction:column;gap:10px">
+<p style="font-size:24px;font-weight:700;color:#2F7A4D">user（每次查到的資料，程式組出來）</p>
+<p style="font-size:22px;line-height:1.55;color:#4A5A4F;font-family:Menlo, Courier, monospace">【栽培手冊】<br>【手冊1｜洋香瓜 第12頁】白粉病初期於葉面出現白色粉狀…<br>【手冊2｜洋香瓜 第13頁】…<br><br>【網路搜尋結果】<br>【網路1｜瓜類白粉病防治 - 農業知識入口網】https://kmweb.moa.gov.tw/…<br>白粉病好發於…<br><br>問題：洋香瓜葉子有白粉怎麼辦？</p>
+</div>
+<div style="background:#FFFDF7;border:2px solid #D8E2D3;border-radius:20px;padding:20px 28px;display:flex;flex-direction:column;gap:8px">
+<p style="font-size:26px;line-height:1.5;color:#4A5A4F"><b>為什麼這樣設計：</b>模型沒有上網能力，也不該自己決定信什麼。搜尋由我們的程式做，資料由我們貼給它，信任順序也由我們規定，它只負責「用白話整理」。</p>
+</div>
+</div>
+</div>
+<p style="position:absolute;left:128px;bottom:64px;width:1664px;font-size:24px;color:#6A776D">技術細節 12 / 12 · 這就是 RAG 的本意：Retrieval（我們查）→ Augmented（貼給它）→ Generation（它寫）</p>
+<aside>最後看一下交給模型的那一包實際長什麼樣子，這是最多人誤會的地方。我們不是對模型說「請上網幫我查」，模型根本沒有上網能力。而是左邊這段 system 規則，程式寫死的：你是農業助理，會拿到手冊和網路兩種資料，手冊優先，每點要標出處，不准杜撰。右邊是 user 內容，每次查到的資料由程式組出來：先放手冊段落，每段標作物和頁碼；再放網路結果，每筆標標題和網址；最後才是農友的問題。所以搜尋是我們的程式做的，資料是我們貼給它的，信任順序是我們規定的，模型只負責用白話整理。這其實就是 RAG 三個字的本意：Retrieval 我們查、Augmented 貼給它、Generation 它寫。技術細節到這裡結束。</aside>
+</section>

@@ -1,0 +1,32 @@
+<section id="t8-check" data-transition="fade" style="background:#E7EEE3;color:#1F3A2B;font-family:'Noto Sans TC', Arial, sans-serif;padding:128px 128px 160px;display:flex;flex-direction:column;gap:40px">
+<div style="display:flex;flex-direction:column;gap:16px">
+<p style="font-size:28px;font-weight:700;color:#A8521A;letter-spacing:2px">藏鑰匙 ② 三道保險，和怎麼自己檢查</p>
+<h2 style="font-family:'Noto Serif TC', Georgia, serif;font-size:64px;font-weight:900">本機用 .env、雲端用環境變數、GitHub 永遠沒有</h2>
+</div>
+<div style="display:flex;gap:24px">
+<div style="flex:1;background:#FFFDF7;border:2px solid #D8E2D3;border-radius:20px;padding:28px;display:flex;flex-direction:column;gap:12px">
+<h3 style="font-size:32px;font-weight:700">① 本機測試 → .env</h3>
+<p style="font-size:26px;line-height:1.5;color:#4A5A4F">鑰匙寫在自己電腦的 .env 檔，<b>npx vercel dev</b> 會讀它</p>
+</div>
+<div style="flex:1;background:#FFFDF7;border:2px solid #D8E2D3;border-radius:20px;padding:28px;display:flex;flex-direction:column;gap:12px">
+<h3 style="font-size:32px;font-weight:700">② .gitignore 擋住</h3>
+<p style="font-size:26px;line-height:1.5;color:#4A5A4F;font-family:Menlo, Courier, monospace">.env<br>.env.*<br>!.env.example</p>
+<p style="font-size:24px;line-height:1.4;color:#4A5A4F">git 永遠不會把 .env 送上 GitHub</p>
+</div>
+<div style="flex:1;background:#FFFDF7;border:2px solid #D8E2D3;border-radius:20px;padding:28px;display:flex;flex-direction:column;gap:12px">
+<h3 style="font-size:32px;font-weight:700">③ 只給範本</h3>
+<p style="font-size:26px;line-height:1.5;color:#4A5A4F;font-family:Menlo, Courier, monospace">GEMINI_API_KEY=<br>GROQ_API_KEY=<br>TAVILY_API_KEY=</p>
+<p style="font-size:24px;line-height:1.4;color:#4A5A4F">.env.example 進版控，只有名字沒有值</p>
+</div>
+</div>
+<div style="background:#1F3A2B;border-radius:20px;padding:28px 36px;display:flex;flex-direction:column;gap:16px">
+<h3 style="font-size:32px;font-weight:700;color:#F2A65A">上線前自己檢查（三分鐘）</h3>
+<div style="display:flex;gap:32px">
+<p style="flex:1;font-size:26px;line-height:1.5;color:#F6F4EC">在網站按右鍵「檢視原始碼」，搜尋 <b>gsk_</b> 和 <b>AIza</b>：<span style="color:#C9D8CC">要找不到</span></p>
+<p style="flex:1;font-size:26px;line-height:1.5;color:#F6F4EC">到 GitHub 儲存庫搜尋同樣兩個字串：<span style="color:#C9D8CC">要找不到</span></p>
+<p style="flex:1;font-size:26px;line-height:1.5;color:#F6F4EC">萬一真的推上去了：<span style="color:#C9D8CC">立刻到該網站刪掉那把、重建一把</span>，改歷史紀錄沒用</p>
+</div>
+</div>
+<p style="position:absolute;left:128px;bottom:64px;width:1664px;font-size:24px;color:#6A776D">技術細節 9 / 12</p>
+<aside>最後是三道保險，還有怎麼自己檢查。第一，本機測試時鑰匙寫在電腦上的 .env 檔，npx vercel dev 會自動讀它。第二，.gitignore 裡把 .env 擋住，git 永遠不會把它送上 GitHub。第三，進版控的只有 .env.example 這個範本，只有名字沒有值，讓接手的人知道要設哪幾個。上線前花三分鐘自己檢查：到網站按右鍵檢視原始碼，搜 gsk 底線和 AIza，要找不到；到 GitHub 儲存庫搜同樣的字串，也要找不到。萬一真的不小心推上去了，不要想說改歷史紀錄就好，GitHub 上的東西一推出去就當作已經被看到，正確做法是立刻到該網站刪掉那把鑰匙、重建一把、更新 Vercel。技術細節到這裡，接下來回到除錯的故事。</aside>
+</section>

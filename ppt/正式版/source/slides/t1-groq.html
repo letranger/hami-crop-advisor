@@ -1,0 +1,21 @@
+<section id="t1-groq" data-transition="fade" style="background:#F6F4EC;color:#1F3A2B;font-family:'Noto Sans TC', Arial, sans-serif;padding:128px 128px 160px;display:flex;flex-direction:column;gap:40px">
+<div style="display:flex;flex-direction:column;gap:16px">
+<p style="font-size:28px;font-weight:700;color:#A8521A;letter-spacing:2px">拿鑰匙 ① Groq（負責寫答案）</p>
+<h2 style="font-family:'Noto Serif TC', Georgia, serif;font-size:64px;font-weight:900">console.groq.com/keys：登入、按一顆鈕、複製</h2>
+</div>
+<div style="display:flex;gap:48px;align-items:flex-start">
+<img src="/_blob/72eefd520b139c49411049b93d10cb4d" alt="Groq 主控台 API Keys 頁面，顯示名為雲林智慧農業App 的金鑰" style="width:1060px;height:258px;object-fit:contain;border:2px solid #D8E2D3;border-radius:16px;background:#FFFFFF">
+<div style="flex:1;display:flex;flex-direction:column;gap:20px">
+<div style="display:flex;gap:16px;align-items:flex-start"><p style="font-size:30px;font-weight:900;color:#2F7A4D;width:40px">1</p><p style="flex:1;font-size:28px;line-height:1.4">用 Google 帳號登入，不用填信用卡</p></div>
+<div style="display:flex;gap:16px;align-items:flex-start"><p style="font-size:30px;font-weight:900;color:#2F7A4D;width:40px">2</p><p style="flex:1;font-size:28px;line-height:1.4">左上 API Keys → 右上 <b>Create API Key</b></p></div>
+<div style="display:flex;gap:16px;align-items:flex-start"><p style="font-size:30px;font-weight:900;color:#2F7A4D;width:40px">3</p><p style="flex:1;font-size:28px;line-height:1.4">取名字（我們叫「雲林智慧農業App」）</p></div>
+<div style="display:flex;gap:16px;align-items:flex-start"><p style="font-size:30px;font-weight:900;color:#2F7A4D;width:40px">4</p><p style="flex:1;font-size:28px;line-height:1.4">複製 <b>gsk_</b> 開頭那串，<span style="color:#A8521A;font-weight:700">只會顯示這一次</span></p></div>
+</div>
+</div>
+<div style="background:#E7EEE3;border-radius:16px;padding:24px 36px;display:flex;gap:40px;align-items:center">
+<p style="font-size:28px;font-weight:700;width:260px">畫面上看到的</p>
+<p style="flex:1;font-size:26px;line-height:1.5;color:#4A5A4F">金鑰事後只顯示頭尾（gsk_…ee2y），網站自己也不再給你看全文；有「到期日」，到期要重新建一把並更新 Vercel 設定。</p>
+</div>
+<p style="position:absolute;left:128px;bottom:64px;width:1664px;font-size:24px;color:#7A877D">技術細節 2 / 12 · 金鑰名稱 GROQ_API_KEY</p>
+<aside>第一把鑰匙是 Groq，負責寫答案的語言模型。到 console.groq.com，用 Google 帳號登入，不用信用卡。進到 API Keys 頁面，按右上角 Create API Key，給它取個名字，我們叫雲林智慧農業App。按下去會顯示一串 gsk 開頭的文字，這就是鑰匙，而且只顯示這一次，關掉視窗就再也看不到全文，所以要馬上複製貼到 Vercel。畫面上可以看到我們這把是 7 月 20 日建的，有到期日，到期要重建一把。</aside>
+</section>

@@ -1,0 +1,30 @@
+<section id="t3-github" data-transition="fade" style="background:#F6F4EC;color:#1F3A2B;font-family:'Noto Sans TC', Arial, sans-serif;padding:128px 128px 160px;display:flex;flex-direction:column;gap:40px">
+<div style="display:flex;flex-direction:column;gap:16px">
+<p style="font-size:28px;font-weight:700;color:#A8521A;letter-spacing:2px">存程式 ① 送上 GitHub</p>
+<h2 style="font-family:'Noto Serif TC', Georgia, serif;font-size:64px;font-weight:900">五行指令，但我們是用一句話叫 Claude 做</h2>
+</div>
+<div style="display:flex;gap:40px;align-items:flex-start">
+<div style="width:760px;display:flex;flex-direction:column;gap:20px">
+<div style="background:#1F3A2B;border-radius:16px;padding:28px 32px;display:flex;flex-direction:column;gap:10px;font-family:Menlo, Courier, monospace">
+<p style="font-size:26px;color:#9DB5A3">git init</p>
+<p style="font-size:26px;color:#9DB5A3">git add .</p>
+<p style="font-size:26px;color:#9DB5A3">git commit -m "初始化 PWA 雛形"</p>
+<p style="font-size:26px;color:#F6F4EC">git remote add origin https://github.com/letranger/hami-crop-advisor.git</p>
+<p style="font-size:26px;color:#F2A65A">git push -u origin main</p>
+</div>
+<div style="background:#E7EEE3;border-radius:16px;padding:24px 32px;display:flex;flex-direction:column;gap:8px">
+<p style="font-size:26px;line-height:1.5;color:#4A5A4F">實際對 Claude Code 說的是：<b style="color:#1F3A2B">「幫我 commit 並 push 到 GitHub」</b>。指令是它打的，我們只看結果。</p>
+</div>
+</div>
+<div style="flex:1;display:flex;flex-direction:column;gap:20px">
+<img src="/_blob/a5a5be1b0915e89ca45f6864aa5b7b40" alt="GitHub 上的 hami-crop-advisor 儲存庫首頁，右側 About 連到 hami-crop-advisor.vercel.app" style="width:864px;height:378px;object-fit:contain;border:2px solid #D8E2D3;border-radius:16px;background:#FFFFFF">
+<p style="font-size:24px;color:#6A776D">github.com/letranger/hami-crop-advisor：公開儲存庫，右側 About 直接連到正式網站</p>
+</div>
+</div>
+<div style="display:flex;gap:24px">
+<div style="flex:1;background:#FFFDF7;border:2px solid #D8E2D3;border-radius:16px;padding:20px 28px"><p style="font-size:26px;line-height:1.5"><b>事前</b>：到 github.com 註冊、New repository 建一個空的，取好名字</p></div>
+<div style="flex:1;background:#FFFDF7;border:2px solid #D8E2D3;border-radius:16px;padding:20px 28px"><p style="font-size:26px;line-height:1.5"><b>卡關</b>：第一次 push 會問密碼，但 GitHub 已不收密碼，要用 <b>gh auth login</b> 登入一次</p></div>
+</div>
+<p style="position:absolute;left:128px;bottom:64px;width:1664px;font-size:24px;color:#7A877D">技術細節 4 / 12</p>
+<aside>第二件事，把程式送到 GitHub。技術上就是左邊這五行：init 建倉庫、add 把檔案加進去、commit 寫一句說明、remote add 指定 GitHub 上的網址、push 推上去。但我們沒有自己打，是對 Claude Code 說「幫我 commit 並 push 到 GitHub」，它會自己打指令，我們看結果就好。事前要做的只有到 github.com 註冊，然後 New repository 建一個空的倉庫。我們實際卡過一關：第一次 push 會問密碼，但 GitHub 現在不收密碼了，要用 gh auth login 用瀏覽器登入一次，之後就都不用再問。右邊就是倉庫在 GitHub 上的樣子。</aside>
+</section>
