@@ -560,6 +560,17 @@ function onSearchFocus(){
   }
 }
 
+/* AI 偶爾仍會輸出 Markdown；前端是純文字顯示，先把常見符號拿掉 */
+function stripMd(t){
+  return String(t||'')
+    .replace(/\*\*(.+?)\*\*/g,'$1')      // **粗體**
+    .replace(/^#{1,6}\s*/gm,'')            // # 標題
+    .replace(/^\s*[-*]{3,}\s*$/gm,'')      // --- 分隔線
+    .replace(/^\|?\s*:?-{2,}:?\s*(\|\s*:?-{2,}:?\s*)*\|?\s*$/gm,'') // 表格分隔列
+    .replace(/^\|\s*/gm,'').replace(/\s*\|\s*$/gm,'').replace(/\s*\|\s*/g,'　')  // 表格豎線
+    .replace(/\n{3,}/g,'\n\n').trim();
+}
+
 async function askAI(){
   const q = (document.getElementById('searchInput').value||'').trim();
   const box = document.getElementById('aiAnswer');
@@ -596,7 +607,7 @@ async function askAI(){
     box.innerHTML = `<div class="ai-card">
       <div class="ai-head">🤖 AI 回答（依手冊＋網路）</div>
       ${cachedNote}
-      <div class="ai-body">${esc(data.answer)}</div>
+      <div class="ai-body">${esc(stripMd(data.answer))}</div>
       ${srcHtml}
     </div>`;
     recordTextDiagnosis(q, data.answer, data.sources);   // 本機留存（共享端後端已寫入）
