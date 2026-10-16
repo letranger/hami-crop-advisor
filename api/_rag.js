@@ -31,7 +31,7 @@ const GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
 
 // 看圖判病：主用 Gemini Vision（免費層），Gemini 失敗（如 429 額度）時退到 Groq 的 Llama 4 Scout（也看得懂圖）。
 const GEMINI_VISION_MODEL = process.env.GEMINI_VISION_MODEL || 'gemini-2.5-flash';
-const GROQ_VISION_MODEL   = process.env.GROQ_VISION_MODEL   || 'meta-llama/llama-4-scout-17b-16e-instruct';
+const GROQ_VISION_MODEL   = process.env.GROQ_VISION_MODEL   || 'qwen/qwen3.8-27b';
 
 // 網路搜尋：Tavily（專為 LLM 設計、免費額度、免綁卡）。用於「上網查」模式，與手冊 RAG 分開。
 const TAVILY_URL = 'https://api.tavily.com/search';
@@ -364,9 +364,14 @@ async function classifyGemini(dataUrl) {
   const url = `${GEMINI_BASE}/${GEMINI_VISION_MODEL}:generateContent?key=${geminiKey()}`;
   const data = await postJSON(url, {
     contents: [{ parts: [{ text: VISION_PROMPT }, { inline_data: { mime_type: mime, data: b64 } }] }],
-    generationConfig: { temperature: 0.1, maxOutputTokens: 300, responseMimeType: 'application/json' },
+    // thinkingBudget 0：關掉 2.5 系列的「思考」，否則思考 token 會吃掉 maxOutputTokens、正文變空白
+    generationConfig: { temperature: 0.1, maxOutputTokens: 1024, responseMimeType: 'application/json',
+      thinkingConfig: { thinkingBudget: 0 } },
   }, '看圖判讀(Gemini)');
-  return parseVision(data?.candidates?.[0]?.content?.parts?.map((p) => p.text).join(''));
+  const cand = data?.candidates?.[0];
+  const text = cand?.content?.parts?.map((p) => p.text || '').join('');
+  if (!text) throw new Error(`Gemini 無正文（finishReason=${cand?.finishReason || '?'}，${JSON.stringify(data).slice(0, 160)}）`);
+  return parseVision(text);
 }
 
 async function classifyGroq(dataUrl) {
