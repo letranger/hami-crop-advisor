@@ -29,6 +29,10 @@ const GEMINI_BASE = 'https://generativelanguage.googleapis.com/v1beta/models';
 const GROQ_MODEL = process.env.GROQ_MODEL || 'openai/gpt-oss-120b';
 const GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
 
+// 看圖判病：主用 Gemini Vision（免費層），Gemini 失敗（如 429 額度）時退到 Groq 的 Llama 4 Scout（也看得懂圖）。
+const GEMINI_VISION_MODEL = process.env.GEMINI_VISION_MODEL || 'gemini-2.5-flash';
+const GROQ_VISION_MODEL   = process.env.GROQ_VISION_MODEL   || 'meta-llama/llama-4-scout-17b-16e-instruct';
+
 // 網路搜尋：Tavily（專為 LLM 設計、免費額度、免綁卡）。用於「上網查」模式，與手冊 RAG 分開。
 const TAVILY_URL = 'https://api.tavily.com/search';
 
@@ -315,7 +319,86 @@ async function generateMerged(question, manualHits, webResults) {
   return text.trim();
 }
 
+/* ===== 看圖判病（視覺模型，不是 RAG）===== */
+
+// 可判讀的類別：id 必須和前端 app.js 的 KNOWLEDGE、後端 FALLBACK 一致，才能對到建議文字。
+const VISION_CLASSES = [
+  { id: 'powdery',  name: '白粉病',        hint: '葉面或莖上有白色粉狀黴層' },
+  { id: 'downy',    name: '露菌病',        hint: '葉面多角形黃斑、葉背灰紫色黴層' },
+  { id: 'nitrogen', name: '葉片黃化 / 缺肥', hint: '老葉整片均勻淡黃、植株瘦弱' },
+  { id: 'crack',    name: '果實龜裂 / 裂果', hint: '果實表面裂開' },
+  { id: 'curl',     name: '葉片捲曲',      hint: '新葉捲曲、皺縮變形' },
+  { id: 'pest',     name: '薊馬 / 蚜蟲',   hint: '葉面銀白刮痕斑點、看得到小蟲、蜜露煤煙' },
+  { id: 'healthy',  name: '植株健康',      hint: '葉色正常、無病徵' },
+  { id: 'none',     name: '不是植物',      hint: '照片中沒有植物的葉片、果實或植株' },
+];
+
+const VISION_PROMPT =
+  `你是台灣溫室瓜果類（哈密瓜、洋香瓜、小黃瓜、番茄等）的植物病蟲害診斷專家。\n` +
+  `請判讀這張照片，從下列類別選出「最可能」的一個：\n` +
+  VISION_CLASSES.map((c) => `- ${c.id}：${c.name}（${c.hint}）`).join('\n') + '\n' +
+  `規則：\n` +
+  `1) 若照片沒有植物（人、室內、文件、風景等），id 一律填 none。\n` +
+  `2) conf 是你對該判斷的把握程度，0～100 的整數；看不清楚或病徵不典型就給低一點，不要硬湊高分。\n` +
+  `3) symptom 用繁體中文（台灣用語）一句話描述你在照片裡實際看到的病徵，30 字內。\n` +
+  `只回傳 JSON，格式：{"id":"<類別id>","conf":<整數>,"symptom":"<一句話>"}`;
+
+function parseVision(text) {
+  const m = String(text || '').match(/\{[\s\S]*\}/);
+  if (!m) throw new Error('視覺模型未回傳 JSON');
+  const o = JSON.parse(m[0]);
+  const cls = VISION_CLASSES.find((c) => c.id === o.id);
+  if (!cls) throw new Error(`視覺模型回傳未知類別：${o.id}`);
+  const conf = Math.max(0, Math.min(100, Math.round(Number(o.conf) || 0)));
+  return { id: cls.id, name: cls.name, conf, symptom: String(o.symptom || '').slice(0, 60) };
+}
+
+function splitDataUrl(dataUrl) {
+  const m = String(dataUrl || '').match(/^data:(image\/[a-z0-9.+-]+);base64,(.+)$/i);
+  if (!m) throw new Error('image 必須是 data:image/...;base64 格式');
+  return { mime: m[1], b64: m[2] };
+}
+
+async function classifyGemini(dataUrl) {
+  const { mime, b64 } = splitDataUrl(dataUrl);
+  const url = `${GEMINI_BASE}/${GEMINI_VISION_MODEL}:generateContent?key=${geminiKey()}`;
+  const data = await postJSON(url, {
+    contents: [{ parts: [{ text: VISION_PROMPT }, { inline_data: { mime_type: mime, data: b64 } }] }],
+    generationConfig: { temperature: 0.1, maxOutputTokens: 300, responseMimeType: 'application/json' },
+  }, '看圖判讀(Gemini)');
+  return parseVision(data?.candidates?.[0]?.content?.parts?.map((p) => p.text).join(''));
+}
+
+async function classifyGroq(dataUrl) {
+  const data = await postJSON(GROQ_URL, {
+    model: GROQ_VISION_MODEL,
+    messages: [{ role: 'user', content: [
+      { type: 'text', text: VISION_PROMPT },
+      { type: 'image_url', image_url: { url: dataUrl } },
+    ] }],
+    temperature: 0.1,
+    max_tokens: 300,
+    response_format: { type: 'json_object' },
+  }, '看圖判讀(Groq)', { Authorization: `Bearer ${groqKey()}` });
+  return parseVision(data?.choices?.[0]?.message?.content);
+}
+
+// 看圖判病：Gemini 優先；失敗就換 Groq。回傳 { id, name, conf, symptom, provider }。
+async function classifyImage(dataUrl) {
+  try {
+    return { ...(await classifyGemini(dataUrl)), provider: 'gemini' };
+  } catch (e) {
+    console.warn('Gemini 看圖失敗，改用 Groq：', e.message);
+    try {
+      return { ...(await classifyGroq(dataUrl)), provider: 'groq' };
+    } catch (e2) {
+      throw new Error(`看圖判讀失敗：${e.message}；備援也失敗：${e2.message}`);
+    }
+  }
+}
+
 module.exports = {
   loadKB, embedQuery, cosine, retrieve, search, generate,
   webSearch, generateWeb, generateMerged,
+  classifyImage, VISION_CLASSES,
 };

@@ -134,51 +134,96 @@ async function runDiagnosis(imgDataUrl){
     return;
   }
 
-  const result = await diagnose(imgDataUrl);
+  let result;
+  try{ result = await diagnose(imgDataUrl); }
+  catch(err){
+    card.innerHTML = `
+      <div class="diag-head"><b>🌿 AI 初步判斷</b><time>分析時間 ${timeStamp()} ↻</time></div>
+      <div class="advice-box">
+        <div class="h">⚠️ 暫時無法判讀</div>
+        <p>AI 看圖服務目前無法使用，可能是網路不穩或使用量達到上限。請稍後再試，或先用「問題查詢」描述症狀。</p>
+      </div>
+      <button class="ai-ask-btn" onclick="openCamera()">📷 重新拍照</button>`;
+    toast('暫時無法判讀，請稍後再試');
+    return;
+  }
+  if(result.id==='none'){ renderNotPlant(card); return; }   // 模型認為照片裡沒有植物
   renderResult(card, result);
   recordImageDiagnosis(imgDataUrl, result);              // 存入診斷記錄
 }
 
 /* ============================================================
-   diagnose() — 目前回傳模擬結果。
-   ↓↓↓ 接真正的 Gemini Vision + RAG 時，把這裡換成 API 呼叫即可 ↓↓↓
+   diagnose() — 把照片送到後端 /api/diagnose：
+   後端用視覺模型（Gemini，失敗退 Groq）看圖判病，再以 RAG 查手冊產生建議。
+   照片先縮到長邊 1024px 再上傳（手機原圖動輒 3～5 MB，serverless 收不下）。
+   本機 python http.server 沒有 /api → 會收到 index.html（非 JSON），
+   這時才退回示範案例，並在畫面標示「示範模式」。
    ============================================================ */
-async function diagnose(imgDataUrl){
-  await new Promise(r=>setTimeout(r,1400));               // 模擬網路延遲
-  const demo = DEMO_CASES[demoIdx % DEMO_CASES.length];
-  demoIdx++;
-  return demo;
-
-  /* --- 未來正式版參考（需在「後端」呼叫，勿把金鑰放前端）---
-  const res = await fetch('/api/diagnose', {              // 你的後端 serverless function
-    method:'POST', headers:{'Content-Type':'application/json'},
-    body: JSON.stringify({ image: imgDataUrl })
+function shrinkImage(dataUrl, max=1024, q=0.85){
+  return new Promise((resolve)=>{
+    const img=new Image();
+    img.onload=()=>{
+      try{
+        const scale=Math.min(1, max/Math.max(img.width,img.height));
+        if(scale===1 && dataUrl.length < 1_500_000) return resolve(dataUrl);
+        const c=document.createElement('canvas');
+        c.width=Math.round(img.width*scale); c.height=Math.round(img.height*scale);
+        c.getContext('2d').drawImage(img,0,0,c.width,c.height);
+        resolve(c.toDataURL('image/jpeg', q));
+      }catch(e){ resolve(dataUrl); }
+    };
+    img.onerror=()=>resolve(dataUrl);
+    img.src=dataUrl;
   });
-  return await res.json();   // 後端內部：Gemini Vision 判症狀 → RAG 查 KNOWLEDGE → 回傳
-  */
+}
+
+async function diagnose(imgDataUrl){
+  const image = await shrinkImage(imgDataUrl);
+  const res = await fetch('/api/diagnose', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ image })
+  });
+  const raw = await res.text();
+  let data;
+  try{ data = JSON.parse(raw); }
+  catch(_){
+    // 沒有後端（本機靜態伺服器）→ 示範模式
+    const demo = DEMO_CASES[demoIdx % DEMO_CASES.length]; demoIdx++;
+    return { ...demo, demo:true };
+  }
+  if(!res.ok) throw new Error(data.detail || data.error || ('HTTP '+res.status));
+  return data;
 }
 
 function renderResult(card, r){
   const k = KNOWLEDGE.find(x=>x.id===r.id) || KNOWLEDGE[0];
+  const name = r.name || k.name;
+  const advice = r.advice || k.advice;            // 後端 RAG 建議優先，沒有才用內建
   const conf = r.conf;
   const isHealthy = r.id==='healthy';
   const now = timeStamp();
+  const seen = r.symptom ? `<div class="seen">👁 照片中看到：${esc(r.symptom)}</div>` : '';
+  const src = (r.sources||[]).map(x=>`<span class="src-chip">${esc(x.crop)}·第${x.page}頁</span>`).join('');
+  const note = r.demo ? `<div class="demo-note">⚠️ 示範模式：本機沒有後端，顯示的是範例結果</div>` : '';
   card.innerHTML = `
     <div class="diag-head"><b>🌿 AI 初步判斷</b><time>分析時間 ${now} ↻</time></div>
+    ${note}
     <div class="diag-main">
       <div class="txt">
-        <div class="cond">${isHealthy?'':'<span class="dotr">🔴</span>'}${isHealthy?'植株健康':'疑似'+k.name}</div>
+        <div class="cond">${isHealthy?'':'<span class="dotr">🔴</span>'}${isHealthy?'植株健康':'疑似'+esc(name)}</div>
         <div class="prob">可能性 <b>${conf}%</b></div>
+        ${seen}
       </div>
       ${gauge(conf)}
     </div>
     <div class="advice-box">
       <div class="h">🌱 管理建議</div>
-      <p>${k.advice}</p>
+      <p style="white-space:pre-line">${esc(stripMd(advice))}</p>
+      ${src?`<div class="ai-src"><b>📖 手冊來源</b><br>${src}</div>`:''}
     </div>
     <div class="tags">${k.tags.map(t=>`<span class="t ${t==='需留意'?'warn':''}">${t}</span>`).join('')}</div>
   `;
-  toast(isHealthy?'診斷完成：植株健康 ✓':`診斷完成：疑似${k.name} ${conf}%`);
+  toast(isHealthy?'診斷完成：植株健康 ✓':`診斷完成：疑似${name} ${conf}%`);
 }
 
 /* 半圓儀表（SVG）— 依信心度上色（紅→黃→綠漸層弧）*/
@@ -263,13 +308,14 @@ function openDiag(){ go('diag'); renderDiagRecent(); }
 function recordImageDiagnosis(imgDataUrl, r){
   const k = KNOWLEDGE.find(x=>x.id===r.id) || KNOWLEDGE[0];
   const healthy = r.id==='healthy';
+  const name = r.name || k.name, advice = r.advice || k.advice;
   makeThumb(imgDataUrl, thumb=>{
     addRecord({ type:'image', healthy, conf:r.conf, thumb,
-      cond: healthy ? '植株健康' : k.name, advice: k.advice, tags: k.tags });
+      cond: healthy ? '植株健康' : name, advice, tags: k.tags });
     fetch('/api/record-image', {
       method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ condId:r.id, cond: healthy?'植株健康':k.name,
-        conf:r.conf, healthy, advice:k.advice, thumb })
+      body: JSON.stringify({ condId:r.id, cond: healthy?'植株健康':name,
+        conf:r.conf, healthy, advice, thumb })
     }).then(()=>{ invalidateRecords(); renderDiagRecent(); })  // 上傳後刷新歷史，納入這次
       .catch(()=>{});
   });
