@@ -23,8 +23,10 @@ const EMBED_MODEL = 'gemini-embedding-001';
 const EMBED_DIM = 768;
 const GEMINI_BASE = 'https://generativelanguage.googleapis.com/v1beta/models';
 
-// 生成：Groq（OpenAI 相容）。可到 console.groq.com 看可用模型；zh-TW 品質佳、免費穩定。
-const GROQ_MODEL = 'llama-3.3-70b-versatile';
+// 生成：Groq（OpenAI 相容）。可到 console.groq.com/docs/models 看可用模型。
+// 2026-08 起 llama-3.3-70b-versatile 僅限企業方案（免費層呼叫會回 404 model_not_found），
+// 改用免費層可用的 openai/gpt-oss-120b；要換模型可在 Vercel 設環境變數 GROQ_MODEL，不必改程式。
+const GROQ_MODEL = process.env.GROQ_MODEL || 'openai/gpt-oss-120b';
 const GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
 
 // 網路搜尋：Tavily（專為 LLM 設計、免費額度、免綁卡）。用於「上網查」模式，與手冊 RAG 分開。

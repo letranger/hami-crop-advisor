@@ -72,7 +72,7 @@ RAG（檢索增強生成）：把 `docs/` 的栽培手冊建成向量索引，�
 **供應商：嵌入用 Gemini、生成用 Groq（皆免費）**
 - 索引/檢索：Gemini `gemini-embedding-001`（免費、額度足）→ 金鑰 `GEMINI_API_KEY`
   （<https://aistudio.google.com/api-keys>）
-- 產生回答：Groq `llama-3.3-70b-versatile`（免費、穩定）→ 金鑰 `GROQ_API_KEY`
+- 產生回答：Groq `openai/gpt-oss-120b`（免費層可用；`llama-3.3-70b-versatile` 已限企業方案。可用環境變數 `GROQ_MODEL` 覆寫）→ 金鑰 `GROQ_API_KEY`
   （<https://console.groq.com/keys>）
 - 為何拆兩家：Gemini 免費層的「**生成**」配額不敷 demo 使用（會 429），故生成改用 Groq；
   嵌入維持 Gemini。兩把金鑰**只放伺服器端**（Vercel 環境變數 / 本機 `.env`），切勿寫進前端。
